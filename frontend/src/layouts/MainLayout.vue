@@ -10,7 +10,7 @@
           @click="leftDrawer = !leftDrawer"
         />
         <q-toolbar-title>
-          IRC Slack
+          DEV
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
@@ -25,7 +25,7 @@
           <q-list>
             <q-item to="/"><q-item-section>Main</q-item-section></q-item>
             <q-item to="/login"><q-item-section>Login</q-item-section></q-item>
-            <q-item to="/signup"><q-item-section>Register</q-item-section></q-item>
+            <q-item to="/signup"><q-item-section>Sign Up</q-item-section></q-item>
           </q-list>
       </q-scroll-area>
     </q-drawer>

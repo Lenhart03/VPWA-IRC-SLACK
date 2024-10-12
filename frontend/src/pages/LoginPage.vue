@@ -1,7 +1,6 @@
 <template>
-  <q-page padding class="full-height full-width row justify-center items-center">
-    <div class="">
-      <q-card class="q-pa-md q-mb-lg" style="max-width: 400px; width: 400px;">
+  <q-page padding class="full-height full-width row justify-center items-center q-pa-sm">
+      <q-card class="col-12 q-pa-md q-mb-lg" style="max-width: 400px;">
         <q-card-section>
           <div class="text-h6">Login</div>
         </q-card-section>
@@ -26,7 +25,7 @@
             />
 
             <q-btn
-              label="Login"
+              label="Log in"
               type="submit"
               color="primary"
               class="full-width q-mt-lg"
@@ -35,33 +34,26 @@
           </q-form>
         </q-card-section>
       </q-card>
-    </div>
   </q-page>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { QForm } from 'quasar'
+import { useRouter } from 'vue-router'
 export default defineComponent({
   name: 'LoginPage',
 
   data () {
     return {
       email: '',
-      password: ''
+      password: '',
+      router: useRouter()
     }
   },
 
   methods: {
     async onSubmit () {
-      const loginForm = this.$refs.loginForm as QForm
-      const isValid = await loginForm.validate()
-      if (isValid) {
-        // Handle successful login
-        console.log('Email:', this.email)
-        console.log('Password:', this.password)
-        // Implement actual login logic
-      }
+      this.router.push('/')
     }
   }
 })
