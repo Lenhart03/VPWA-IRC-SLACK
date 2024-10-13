@@ -2,9 +2,8 @@
   <!-- Header -->
   <q-header class="bg-primary text-white" elevated>
       <q-toolbar>
-
-        <!-- Left Side: Optional settings or other buttons -->
-        <q-btn flat icon="settings" @click="openSettings" aria-label="Settings" />
+        <!-- Menu for Settings -->
+        <q-btn flat icon="exit_to_app" @click="logOff" aria-label="Settings" />
 
         <!-- Space before centered text -->
         <q-space />
@@ -23,7 +22,10 @@
   <!-- Sidebar (Drawer) -->
   <q-drawer v-model="leftDrawerOpen" show-if-above class="bg-grey-1" elevated>
     <q-list padding>
-      <q-item-label header>Channels</q-item-label>
+      <div class="row items-center justify-between q-mb-md q-pl-md q-pr-md">
+          <q-item-label header>Channels</q-item-label>
+          <q-btn round dense flat icon="add" @click="createChannel" aria-label="Add New Chat" />
+      </div>
       <q-item clickable v-ripple @click="selectChannel('general')">
         <q-item-section avatar>
           <q-icon name="chat" />
@@ -35,76 +37,133 @@
 
       <q-item clickable v-ripple @click="selectChannel('random')">
         <q-item-section avatar>
-          <q-icon name="tag" />
+          <q-icon name="chat" />
         </q-item-section>
         <q-item-section>
           # Random
         </q-item-section>
       </q-item>
-
-      <!-- Button at the Bottom to Add Channel -->
-      <q-page-sticky position="bottom" class="q-px-md q-pb-md">
-        <q-btn
-          round
-          color="primary"
-          icon="add"
-          @click="createChannel"
-          aria-label="Create New Channel"
-        />
-      </q-page-sticky>
     </q-list>
   </q-drawer>
 
   <!-- Main Content Area -->
-  <q-page-container>
-    <q-page class="flex column full-witdh" >
-      <div class="q-pa-md column col justify-end">
+  <q-page class="flex column full-witdh" >
+    <div class="q-pa-md column col justify-end">
+    <q-chat-message
+        name="me"
+        :text="['hey, how are you?']"
+        stamp="7 minutes ago"
+        sent
+        bg-color="amber-7"
+      />
       <q-chat-message
-          name="me"
-          :text="['hey, how are you?']"
-          stamp="7 minutes ago"
-          sent
-          bg-color="amber-7"
-        />
-        <q-chat-message
-          name="Jane"
-          :text="[
-            'doing fine, how r you?',
-            'I just feel like typing a really, really, REALLY long message to annoy you...'
-          ]"
-          size="6"
-          stamp="4 minutes ago"
-          text-color="white"
-          bg-color="primary"
-        />
-        <q-chat-message
-          name="Jane"
-          :text="['Did it work?']"
-          stamp="1 minutes ago"
-          size="8"
-          text-color="white"
-          bg-color="primary"
-        />
-      </div>
+        name="Jane"
+        :text="[
+          'doing fine, how r you?',
+          'I just feel like typing a really, really, REALLY long message to annoy you...'
+        ]"
+        stamp="4 minutes ago"
+        text-color="white"
+        bg-color="primary"
+      />
+      <q-chat-message
+        name="Jane"
+        :text="['Did it work?']"
+        stamp="1 minutes ago"
+        text-color="white"
+        bg-color="primary"
+      />
+    </div>
       <q-footer elevated>
-        <q-toolbar class="justify-center q-pa-md">
-          <q-input v-model="text" label="Type a comment" dense filled rounded
-            class="q-mx-auto q-pa-md"
-            style="width: 80%; max-width: 600px;"
-          >
-            <template v-slot:after>
-              <q-btn round dense flat icon="send" @click="sendMessage" />
-            </template>
-          </q-input>
+      <q-toolbar class="q-pa-md">
 
-        </q-toolbar>
-      </q-footer>
-    </q-page>
+        <!-- Profile Avatar on the left with clickable menu -->
+        <div class="row items-center">
+          <!-- Profile with Q-Menu -->
+          <q-avatar size="50px" @click="menu = true" class="cursor-pointer">
+            <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
+          </q-avatar>
+          <div class="q-ml-sm">
+            <div class="text-subtitle2">User Name</div>
+            <div class="text-caption">{{ status }}</div> <!-- Dynamic status text -->
+          </div>
 
-  </q-page-container>
+          <!-- Dropdown menu for changing status -->
+          <q-menu v-model="menu" anchor="bottom left" self="top left">
+            <q-list>
+              <q-item clickable v-ripple @click="setStatus('Online')">
+                <q-item-section avatar><q-icon name="cloud_done" /></q-item-section>
+                <q-item-section>Online</q-item-section>
+              </q-item>
+
+              <q-item clickable v-ripple @click="setStatus('Offline')">
+                <q-item-section avatar><q-icon name="cloud_off" /></q-item-section>
+                <q-item-section>Offline</q-item-section>
+              </q-item>
+
+              <q-item clickable v-ripple @click="setStatus('Do Not Disturb')">
+                <q-item-section avatar><q-icon name="do_not_disturb" /></q-item-section>
+                <q-item-section>Do Not Disturb</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </div>
+
+        <!-- Space between profile and input -->
+        <q-space />
+
+        <!-- Centered Input Field -->
+        <q-input v-model="text" label="Type a command" dense filled rounded
+          class="q-mx-auto q-pa-md"
+          style="width: 80%; max-width: 80%;"
+        >
+          <template v-slot:after>
+            <q-btn round dense flat icon="send" @click="sendMessage" />
+          </template>
+        </q-input>
+
+      </q-toolbar>
+    </q-footer>
+
+    <!-- Dialog for creating a new channel -->
+    <q-dialog v-model="showCreateChannelDialog" persistent>
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Create a New Channel</div>
+        </q-card-section>
+
+        <q-card-section>
+          <!-- Input for Channel Name -->
+          <q-input
+            v-model="newChannelName"
+            label="Channel Name"
+            dense
+            filled
+            autofocus
+          />
+
+          <!-- Toggle for Public or Private -->
+          <q-toggle
+            v-model="isPrivate"
+            label="Private Channel"
+            left-label
+            color="primary"
+          />
+
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="negative" @click="showCreateChannelDialog = false" />
+          <q-btn flat label="Create" color="primary" @click="submitNewChannel" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </q-page>
+
 </template>
 
 <script lang="ts">
+import { useRouter } from 'vue-router'
 
 export default {
   data () {
@@ -112,14 +171,18 @@ export default {
       leftDrawerOpen: true,
       currentChannel: 'general',
       message: '',
-      text: ''
+      text: '',
+      status: 'Online',
+      menu: false,
+      newChannelName: '',
+      isPrivate: false,
+      showCreateChannelDialog: false,
+      log_off_menu: false,
+      router: useRouter(),
+      settingsMenu: false
     }
   },
   methods: {
-    openSettings () {
-      // Handle settings opening
-      console.log('Settings clicked')
-    },
     selectChannel (channel: string) {
       this.currentChannel = channel
     },
@@ -131,8 +194,28 @@ export default {
       }
     },
     createChannel () {
-      // Logic to create a new channel goes here
       console.log('Create new channel clicked')
+      this.showCreateChannelDialog = true
+    },
+    setStatus (newStatus: string) {
+      this.status = newStatus
+      this.menu = false
+    },
+    submitNewChannel () {
+      if (this.newChannelName.trim() !== '') {
+        console.log(`New Channel Created: ${this.newChannelName}, Private: ${this.isPrivate}`)
+        // Here you would handle creating the new channel (e.g., calling an API)
+        this.newChannelName = ''
+        this.isPrivate = false
+        this.showCreateChannelDialog = false
+      } else {
+        console.log('Channel name is required')
+      }
+    },
+    logOff () {
+      console.log('Log Off clicked')
+      this.settingsMenu = false
+      this.router.push('/login')
     }
   }
 }
