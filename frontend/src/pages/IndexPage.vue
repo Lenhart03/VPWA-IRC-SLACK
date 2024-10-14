@@ -56,52 +56,49 @@
   </q-drawer>
 
   <!-- Main Content Area -->
-  <q-page-container>
-    <q-page class="flex column full-witdh" >
-      <div class="q-pa-md column col justify-end">
+  <q-page class="flex column full-witdh" >
+    <div class="q-pa-md column col justify-end">
+    <q-chat-message
+        name="me"
+        :text="['hey, how are you?']"
+        stamp="7 minutes ago"
+        sent
+        bg-color="amber-7"
+      />
       <q-chat-message
-          name="me"
-          :text="['hey, how are you?']"
-          stamp="7 minutes ago"
-          sent
-          bg-color="amber-7"
-        />
-        <q-chat-message
-          name="Jane"
-          :text="[
-            'doing fine, how r you?',
-            'I just feel like typing a really, really, REALLY long message to annoy you...'
-          ]"
-          size="6"
-          stamp="4 minutes ago"
-          text-color="white"
-          bg-color="primary"
-        />
-        <q-chat-message
-          name="Jane"
-          :text="['Did it work?']"
-          stamp="1 minutes ago"
-          size="8"
-          text-color="white"
-          bg-color="primary"
-        />
-      </div>
-      <q-footer elevated>
-        <q-toolbar class="justify-center q-pa-md">
-          <q-input v-model="text" label="Type a comment" dense filled rounded
-            class="q-mx-auto q-pa-md"
-            style="width: 80%; max-width: 600px;"
-          >
-            <template v-slot:after>
-              <q-btn round dense flat icon="send" @click="sendMessage" />
-            </template>
-          </q-input>
+        name="Jane"
+        :text="[
+          'doing fine, how r you?',
+          'I just feel like typing a really, really, REALLY long message to annoy you...'
+        ]"
+        size="6"
+        stamp="4 minutes ago"
+        text-color="white"
+        bg-color="primary"
+      />
+      <q-chat-message
+        name="Jane"
+        :text="['Did it work?']"
+        stamp="1 minutes ago"
+        size="8"
+        text-color="white"
+        bg-color="primary"
+      />
+    </div>
+    <q-footer elevated>
+      <q-toolbar class="justify-center q-pa-md">
+        <q-input v-model="text" label="Type a message" dense filled rounded
+          class="q-mx-auto q-pa-md"
+          style="width: 80%; max-width: 600px;"
+        >
+          <template v-slot:after>
+            <q-btn round dense flat icon="send" @click="sendMessage" />
+          </template>
+        </q-input>
 
-        </q-toolbar>
-      </q-footer>
-    </q-page>
-
-  </q-page-container>
+      </q-toolbar>
+    </q-footer>
+  </q-page>
 </template>
 
 <script lang="ts">
