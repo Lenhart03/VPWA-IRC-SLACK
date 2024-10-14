@@ -82,7 +82,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { Notify } from 'quasar'
 import { useRouter } from 'vue-router'
+import { User, UserStatus } from 'components/models'
 export default defineComponent({
   name: 'SignUpPage',
 
@@ -102,9 +104,37 @@ export default defineComponent({
     }
   },
 
+  computed: {
+    users () {
+      return this.$store.getters['main/getUsers']
+    }
+  },
+
   methods: {
     async onSubmit () {
-      this.router.push('/')
+      let ok = true
+      this.users.forEach((user: User) => {
+        if (user.username === this.nickname) {
+          ok = false
+        }
+      })
+      if (ok) {
+        const user: User = {
+          id: this.users.length + 1,
+          username: this.nickname,
+          firstname: this.firstname,
+          lastname: this.lastname,
+          email: this.email,
+          password: this.password,
+          status: UserStatus.Online
+        }
+        console.log(user)
+        this.$store.commit('main/setUser', user)
+        this.$store.commit('main/addUser', user)
+        this.router.push('/')
+      } else {
+        Notify.create({ type: 'error', message: 'Username taken.' })
+      }
     }
   }
 })

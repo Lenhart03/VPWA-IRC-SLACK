@@ -18,7 +18,7 @@ function state (): MainStateInterface {
     status: UserStatus.Online
   }
   const otherUser = {
-    id: 1,
+    id: 2,
     username: 'other_user',
     firstname: 'Other',
     lastname: 'User',
