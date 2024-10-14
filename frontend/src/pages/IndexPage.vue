@@ -37,6 +37,27 @@
   <!-- Main Content Area -->
   <q-page class="flex column full-witdh" >
     <div class="q-pa-md column col justify-end" v-if="activeChannel">
+      <template v-for="l_message of messages">
+        <template v-if="l_message.channel_id === activeChannel.id">
+          <div v-bind:key="l_message.id">
+            <q-chat-message
+              v-if="l_message.user_id === user.id"
+              :name="getMessageSenderNameFromId(l_message.user_id)"
+              :text="[l_message.message]"
+              stamp="7 minutes ago"
+              sent
+              bg-color="amber-7"
+            />
+            <q-chat-message
+              v-else
+              :name="getMessageSenderNameFromId(l_message.user_id)"
+              :text="[l_message.message]"
+              stamp="7 minutes ago"
+              bg-color="primary"
+            />
+          </div>
+        </template>
+      </template>
       <!--
       <q-chat-message
         name="me"
@@ -74,7 +95,7 @@
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
           <div class="q-ml-sm">
-            <div class="text-subtitle2"></div>
+            <div class="text-subtitle2">{{ user.firstname + ' ' + user.lastname }}</div>
             <div class="text-caption">{{ status }}</div> <!-- Dynamic status text -->
           </div>
 
@@ -103,7 +124,7 @@
         <q-space />
 
         <!-- Centered Input Field -->
-        <q-input v-model="text" label="Type a command" dense filled rounded
+        <q-input v-model="message" label="Type a command" dense filled rounded
           class="q-mx-auto q-pa-md"
           style="width: 80%; max-width: 80%;"
         >
@@ -154,25 +175,25 @@
 
 <script lang="ts">
 import ChannelItem from 'components/ChannelItem.vue'
+import { User, UserStatus, Message } from 'src/components/models'
 
 export default {
   mounted () {
     if (!this.$store.getters['main/getUser']) {
       this.$router.push('/login')
     }
+    console.log(this.user)
+    console.log(this.users)
+    console.log(this.messages)
   },
   data () {
     return {
       leftDrawerOpen: true,
-      currentChannel: 'general',
       message: '',
-      text: '',
-      status: 'Online',
-      menu: false,
       newChannelName: '',
       isPrivate: false,
       showCreateChannelDialog: false,
-      log_off_menu: false
+      menu: false
     }
   },
   computed: {
@@ -184,26 +205,71 @@ export default {
     },
     user () {
       return this.$store.getters['main/getUser']
+    },
+    status () {
+      let value: string = ''
+      switch (this.user.status) {
+        case
+          UserStatus.Online: value = 'Online'
+          break
+        case
+          UserStatus.Offline: value = 'Offline'
+          break
+        case
+          UserStatus.DND: value = 'DND'
+          break
+      }
+      return value
+    },
+    users () {
+      return this.$store.getters['main/getUsers']
+    },
+    messages () {
+      return this.$store.getters['main/getMessages']
     }
   },
   components: {
     ChannelItem
   },
   methods: {
+    getMessageSenderNameFromId (id: number) {
+      let userFullname: string = ''
+      this.users.forEach((user: User) => {
+        if (user.id === id) {
+          userFullname = user.firstname + ' ' + user.lastname
+        }
+      })
+      return userFullname
+    },
     sendMessage () {
       // Handle sending message
       if (this.message.trim() !== '') {
-        console.log(`Message sent: ${this.message}`)
+        this.message = this.message.trim()
+        const message: Message = {
+          id: this.messages.length + 1,
+          channel_id: this.activeChannel.id,
+          user_id: this.user.id,
+          message: this.message
+        }
+        this.$store.commit('main/pushMessage', message)
         this.message = ''
       }
     },
     createChannel () {
-      console.log('Create new channel clicked')
       this.showCreateChannelDialog = true
     },
     setStatus (newStatus: string) {
-      this.status = newStatus
-      this.menu = false
+      switch (newStatus) {
+        case 'Online':
+          this.$store.commit('main/setUserStatus', UserStatus.Online)
+          break
+        case 'Offline':
+          this.$store.commit('main/setUserStatus', UserStatus.Offline)
+          break
+        case 'Do Not Disturb':
+          this.$store.commit('main/setUserStatus', UserStatus.DND)
+          break
+      }
     },
     submitNewChannel () {
       if (this.newChannelName.trim() !== '') {

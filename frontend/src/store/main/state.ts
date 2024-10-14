@@ -1,10 +1,11 @@
-import { Channel, User, UserStatus, ChannelType } from 'components/models'
+import { Message, Channel, User, UserStatus, ChannelType } from 'components/models'
 
 export interface MainStateInterface {
   active_channel: Channel | null
   user: User | null
   channels: Array<Channel>
   users: Array<User>
+  messages: Array<Message>
 }
 
 function state (): MainStateInterface {
@@ -41,7 +42,8 @@ function state (): MainStateInterface {
     active_channel: null,
     user: null,
     users: [exampleUser, otherUser],
-    channels: [examplePublicChannel, examplePrivateChannel]
+    channels: [examplePublicChannel, examplePrivateChannel],
+    messages: []
   }
 }
 

@@ -1,6 +1,6 @@
 import { MutationTree } from 'vuex'
 import { MainStateInterface } from './state'
-import { Channel, UserStatus, User } from 'components/models'
+import { Message, Channel, UserStatus, User } from 'components/models'
 
 const mutation: MutationTree<MainStateInterface> = {
   selectChannel (state: MainStateInterface, channel: Channel) {
@@ -14,6 +14,9 @@ const mutation: MutationTree<MainStateInterface> = {
   },
   setUser (state: MainStateInterface, user: User) {
     state.user = user
+  },
+  pushMessage (state: MainStateInterface, message: Message) {
+    state.messages.push(message)
   }
 }
 

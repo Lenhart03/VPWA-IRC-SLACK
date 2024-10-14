@@ -14,11 +14,6 @@ export enum UserRole {
   Default
 }
 
-export enum MessageStatus {
-  Read,
-  Unread
-}
-
 export interface User {
   id: number;
   username: string;
@@ -43,8 +38,7 @@ export interface Notification {
 
 export interface Message {
   id: number;
-  message_id: number;
+  channel_id: number;
   user_id: number;
   message: string;
-  status: MessageStatus;
 }

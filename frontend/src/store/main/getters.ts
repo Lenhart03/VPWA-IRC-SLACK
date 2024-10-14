@@ -14,6 +14,9 @@ const getters: GetterTree<MainStateInterface, StateInterface> = {
   },
   getChannels (state: MainStateInterface) {
     return state.channels
+  },
+  getMessages (state: MainStateInterface) {
+    return state.messages
   }
 }
 
