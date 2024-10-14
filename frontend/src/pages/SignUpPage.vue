@@ -60,6 +60,13 @@
             outlined
           />
 
+          <q-item
+            clickable :to="{ path: '/login' }"
+            class="q-mt-md"
+          >
+            <q-item-section>Already have an account.</q-item-section>
+          </q-item>
+
           <q-btn
             label="Sing up"
             type="submit"
@@ -78,6 +85,10 @@ import { defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
 export default defineComponent({
   name: 'SignUpPage',
+
+  mounted () {
+    this.$store.commit('main/setUser', null)
+  },
 
   data () {
     return {

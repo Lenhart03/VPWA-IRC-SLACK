@@ -9,8 +9,8 @@
         <q-space />
 
         <!-- Centered title (current channel) -->
-        <div class="text-h6">
-          {{ currentChannel }}
+        <div class="text-h6" v-if="activeChannel">
+          {{ activeChannel.name }}
         </div>
 
         <!-- Space after centered text -->
@@ -26,30 +26,19 @@
           <q-item-label header>Channels</q-item-label>
           <q-btn round dense flat icon="add" @click="createChannel" aria-label="Add New Chat" />
       </div>
-      <q-item clickable v-ripple @click="selectChannel('general')">
-        <q-item-section avatar>
-          <q-icon name="chat" />
-        </q-item-section>
-        <q-item-section>
-          # General
-        </q-item-section>
-      </q-item>
-
-      <q-item clickable v-ripple @click="selectChannel('random')">
-        <q-item-section avatar>
-          <q-icon name="chat" />
-        </q-item-section>
-        <q-item-section>
-          # Random
-        </q-item-section>
-      </q-item>
+        <ChannelItem
+          v-for="channel in channels"
+          v-bind:key="channel.id"
+          :channel_model=channel
+        />
     </q-list>
   </q-drawer>
 
   <!-- Main Content Area -->
   <q-page class="flex column full-witdh" >
-    <div class="q-pa-md column col justify-end">
-    <q-chat-message
+    <div class="q-pa-md column col justify-end" v-if="activeChannel">
+      <!--
+      <q-chat-message
         name="me"
         :text="['hey, how are you?']"
         stamp="7 minutes ago"
@@ -73,8 +62,9 @@
         text-color="white"
         bg-color="primary"
       />
+      -->
     </div>
-      <q-footer elevated>
+    <q-footer elevated>
       <q-toolbar class="q-pa-md">
 
         <!-- Profile Avatar on the left with clickable menu -->
@@ -84,7 +74,7 @@
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
           <div class="q-ml-sm">
-            <div class="text-subtitle2">User Name</div>
+            <div class="text-subtitle2"></div>
             <div class="text-caption">{{ status }}</div> <!-- Dynamic status text -->
           </div>
 
@@ -163,9 +153,14 @@
 </template>
 
 <script lang="ts">
-import { useRouter } from 'vue-router'
+import ChannelItem from 'components/ChannelItem.vue'
 
 export default {
+  mounted () {
+    if (!this.$store.getters['main/getUser']) {
+      this.$router.push('/login')
+    }
+  },
   data () {
     return {
       leftDrawerOpen: true,
@@ -177,15 +172,24 @@ export default {
       newChannelName: '',
       isPrivate: false,
       showCreateChannelDialog: false,
-      log_off_menu: false,
-      router: useRouter(),
-      settingsMenu: false
+      log_off_menu: false
     }
   },
-  methods: {
-    selectChannel (channel: string) {
-      this.currentChannel = channel
+  computed: {
+    activeChannel () {
+      return this.$store.getters['main/getActiveChannel']
     },
+    channels () {
+      return this.$store.getters['main/getChannels']
+    },
+    user () {
+      return this.$store.getters['main/getUser']
+    }
+  },
+  components: {
+    ChannelItem
+  },
+  methods: {
     sendMessage () {
       // Handle sending message
       if (this.message.trim() !== '') {
@@ -213,9 +217,8 @@ export default {
       }
     },
     logOff () {
-      console.log('Log Off clicked')
-      this.settingsMenu = false
-      this.router.push('/login')
+      this.$store.commit('main/setUser', null)
+      this.$router.push('/login')
     }
   }
 }

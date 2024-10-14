@@ -24,6 +24,13 @@
               class="q-mt-md"
             />
 
+            <q-item
+              clickable :to="{ path: '/signup' }"
+              class="q-mt-md"
+            >
+              <q-item-section>Create a new account.</q-item-section>
+            </q-item>
+
             <q-btn
               label="Log in"
               type="submit"
@@ -40,8 +47,14 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
+import { User } from 'components/models'
+import { Notify } from 'quasar'
 export default defineComponent({
   name: 'LoginPage',
+
+  mounted () {
+    this.$store.commit('main/setUser', null)
+  },
 
   data () {
     return {
@@ -51,9 +64,23 @@ export default defineComponent({
     }
   },
 
+  computed: {
+    users () {
+      return this.$store.getters['main/getUsers']
+    }
+  },
+
   methods: {
     async onSubmit () {
-      this.router.push('/')
+      this.users.forEach((user: User) => {
+        if (user.email === this.email && user.password === this.password) {
+          this.$store.commit('main/setUser', user)
+          this.router.push('/')
+        }
+      })
+      if (!this.$store.getters['main/getUser']) {
+        Notify.create({ type: 'error', message: 'Invalid login information.' })
+      }
     }
   }
 })
