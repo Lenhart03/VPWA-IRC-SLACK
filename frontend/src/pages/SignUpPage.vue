@@ -128,7 +128,6 @@ export default defineComponent({
           password: this.password,
           status: UserStatus.Online
         }
-        console.log(user)
         this.$store.commit('main/setUser', user)
         this.$store.commit('main/addUser', user)
         this.router.push('/')

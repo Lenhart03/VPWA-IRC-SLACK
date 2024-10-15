@@ -26,11 +26,11 @@
           <q-item-label header>Channels</q-item-label>
           <q-btn round dense flat icon="add" @click="createChannel" aria-label="Add New Chat" />
       </div>
-        <ChannelItem
-          v-for="channel in channels"
-          v-bind:key="channel.id"
-          :channel_model=channel
-        />
+      <ChannelItem
+        v-for="channel in userChannels"
+        v-bind:key="channel.id"
+        :channel_model=channel
+      />
     </q-list>
   </q-drawer>
 
@@ -41,7 +41,7 @@
         <template v-if="l_message.channel_id === activeChannel.id">
           <div v-bind:key="l_message.id">
             <q-chat-message
-              v-if="l_message.user_id === user.id"
+              v-if="user && l_message.user_id === user.id"
               :name="getMessageSenderNameFromId(l_message.user_id)"
               :text="[l_message.message]"
               stamp="7 minutes ago"
@@ -91,7 +91,7 @@
         <!-- Profile Avatar on the left with clickable menu -->
         <div class="row items-center">
           <!-- Profile with Q-Menu -->
-          <q-avatar size="50px" @click="menu = true" class="cursor-pointer">
+          <q-avatar size="50px" @click="status_menu = true" class="cursor-pointer">
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
           <div class="q-ml-sm" v-if="user">
@@ -100,7 +100,7 @@
           </div>
 
           <!-- Dropdown menu for changing status -->
-          <q-menu v-model="menu" anchor="bottom left" self="top left">
+          <q-menu v-model="status_menu" anchor="bottom left" self="top left">
             <q-list>
               <q-item clickable v-ripple @click="setStatus('Online')">
                 <q-item-section avatar><q-icon name="cloud_done" /></q-item-section>
@@ -127,6 +127,7 @@
         <q-input v-model="message" label="Type a command" dense filled rounded
           class="q-mx-auto q-pa-md"
           style="width: 80%; max-width: 80%;"
+          @keydown.enter="sendMessage()"
         >
           <template v-slot:after>
             <q-btn round dense flat icon="send" @click="sendMessage" />
@@ -151,6 +152,7 @@
             dense
             filled
             autofocus
+            @keydown.enter="submitNewChannel(); showCreateChannelDialog = false"
           />
 
           <!-- Toggle for Public or Private -->
@@ -175,7 +177,7 @@
 
 <script lang="ts">
 import ChannelItem from 'components/ChannelItem.vue'
-import { User, UserStatus, Message } from 'src/components/models'
+import { ChannelMember, User, UserStatus, Message, Channel, ChannelType } from 'src/components/models'
 
 export default {
   mounted () {
@@ -183,7 +185,6 @@ export default {
       this.$router.push('/login')
     }
     this.$store.commit('main/setUserStatus', UserStatus.Online)
-    console.log(this.$store.getters['main/getState'])
   },
   data () {
     return {
@@ -192,7 +193,7 @@ export default {
       newChannelName: '',
       isPrivate: false,
       showCreateChannelDialog: false,
-      menu: false
+      status_menu: false
     }
   },
   computed: {
@@ -225,6 +226,35 @@ export default {
     },
     messages () {
       return this.$store.getters['main/getMessages']
+    },
+    channelMembers () {
+      return this.$store.getters['main/getChannelMembers']
+    },
+    userChannels () {
+      if (!this.user) return []
+      const userChannels: Array<Channel> = []
+      for (const lChannel of this.channels) {
+        for (const lMember of this.channelMembers) {
+          if (lChannel.id === lMember.channel_id && lMember.user_id === this.user.id) {
+            userChannels.push(lChannel)
+            break
+          }
+        }
+      }
+      return userChannels
+    },
+    getMemersOfActiveChannel () {
+      const membersOfActiveChannel: Array<Channel> = []
+      if (!this.user) return membersOfActiveChannel
+      for (const lChannel of this.channels) {
+        if (lChannel.id !== this.activeChannel.id) continue
+        for (const lMember of this.channelMembers) {
+          if (lMember.channel_id === this.activeChannel.id) {
+            membersOfActiveChannel.push(lMember)
+          }
+        }
+      }
+      return membersOfActiveChannel
     }
   },
   components: {
@@ -244,13 +274,24 @@ export default {
       // Handle sending message
       if (this.message.trim() !== '') {
         this.message = this.message.trim()
-        const message: Message = {
-          id: this.messages.length + 1,
-          channel_id: this.activeChannel.id,
-          user_id: this.user.id,
-          message: this.message
+        if (this.message[0] === '/') {
+          const args = this.message.split(' ')
+          for (let i = 0; i < args.length; i++) {
+            switch (args[i]) {
+              case '/list':
+                console.log(this.getMemersOfActiveChannel)
+                break
+            }
+          }
+        } else {
+          const message: Message = {
+            id: this.messages.length + 1,
+            channel_id: this.activeChannel.id,
+            user_id: this.user.id,
+            message: this.message
+          }
+          this.$store.commit('main/pushMessage', message)
         }
-        this.$store.commit('main/pushMessage', message)
         this.message = ''
       }
     },
@@ -269,21 +310,40 @@ export default {
           this.$store.commit('main/setUserStatus', UserStatus.DND)
           break
       }
+      this.status_menu = false
     },
     submitNewChannel () {
       if (this.newChannelName.trim() !== '') {
-        console.log(`New Channel Created: ${this.newChannelName}, Private: ${this.isPrivate}`)
-        // Here you would handle creating the new channel (e.g., calling an API)
-        this.newChannelName = ''
-        this.isPrivate = false
+        const channel: Channel = {
+          id: this.channels.length + 1,
+          owner_id: this.user.id,
+          name: this.newChannelName,
+          type: this.isPrivate ? ChannelType.Private : ChannelType.Public
+        }
+        this.$store.commit('main/pushChannel', channel)
+        const channelMember: ChannelMember = {
+          channel_id: channel.id,
+          user_id: this.user.id
+        }
+        this.$store.commit('main/addChannelMember', channelMember)
         this.showCreateChannelDialog = false
-      } else {
-        console.log('Channel name is required')
+        this.newChannelName = ''
       }
     },
     logOff () {
       this.$store.commit('main/setUser', null)
       this.$router.push('/login')
+    },
+    shouldDisplayChannel (channel: Channel) {
+      if (channel.type === ChannelType.Public) return true
+      if (!this.user) return false
+      this.$store.commit('main/setTestChannel', channel)
+      for (const member of this.$store.getters['main/getChannelMembers']) {
+        if (this.user.id === member.user_id) {
+          return true
+        }
+      }
+      return false
     }
   }
 }

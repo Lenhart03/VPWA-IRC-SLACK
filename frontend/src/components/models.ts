@@ -26,6 +26,7 @@ export interface User {
 
 export interface Channel {
   id: number;
+  owner_id: number;
   name: string;
   type: ChannelType;
 }
@@ -41,4 +42,9 @@ export interface Message {
   channel_id: number;
   user_id: number;
   message: string;
+}
+
+export interface ChannelMember {
+  channel_id: number
+  user_id: number
 }

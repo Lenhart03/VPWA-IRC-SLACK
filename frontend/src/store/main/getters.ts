@@ -7,6 +7,7 @@ const getters: GetterTree<MainStateInterface, StateInterface> = {
     return state.active_channel
   },
   getUser (state: MainStateInterface) {
+    console.log(state)
     return state.user
   },
   getUsers (state: MainStateInterface) {
@@ -20,6 +21,9 @@ const getters: GetterTree<MainStateInterface, StateInterface> = {
   },
   getState (state: MainStateInterface) {
     return state
+  },
+  getChannelMembers (state: MainStateInterface) {
+    return state.channel_members
   }
 }
 
