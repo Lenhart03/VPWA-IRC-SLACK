@@ -13,7 +13,9 @@ const mutation: MutationTree<MainStateInterface> = {
     state.users.push(user)
   },
   setUser (state: MainStateInterface, user: User) {
+    if (user && state.user) state.user.status = UserStatus.Offline
     state.user = user
+    // if (!user) state.user.status = UserStatus.Online
   },
   pushMessage (state: MainStateInterface, message: Message) {
     state.messages.push(message)

@@ -94,7 +94,7 @@
           <q-avatar size="50px" @click="menu = true" class="cursor-pointer">
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
-          <div class="q-ml-sm">
+          <div class="q-ml-sm" v-if="user">
             <div class="text-subtitle2">{{ user.firstname + ' ' + user.lastname }}</div>
             <div class="text-caption">{{ status }}</div> <!-- Dynamic status text -->
           </div>
@@ -182,9 +182,8 @@ export default {
     if (!this.$store.getters['main/getUser']) {
       this.$router.push('/login')
     }
-    console.log(this.user)
-    console.log(this.users)
-    console.log(this.messages)
+    this.$store.commit('main/setUserStatus', UserStatus.Online)
+    console.log(this.$store.getters['main/getState'])
   },
   data () {
     return {
