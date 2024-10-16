@@ -48,3 +48,9 @@ export interface ChannelMember {
   channel_id: number
   user_id: number
 }
+
+export interface Invite {
+  channel_id: number,
+  source_id: number,
+  target_id: number
+}

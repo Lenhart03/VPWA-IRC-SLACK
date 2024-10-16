@@ -27,6 +27,12 @@
           <q-btn round dense flat icon="add" @click="createChannel" aria-label="Add New Chat" />
       </div>
       <ChannelItem
+        v-for="invite in myInvites"
+        v-bind:key="invite.channel_id"
+        :channel_model=getChannelById(invite.channel_id)
+        :invite="invite"
+      />
+      <ChannelItem
         v-for="channel in userChannels"
         v-bind:key="channel.id"
         :channel_model=channel
@@ -39,7 +45,7 @@
     <div class="q-pa-md column col justify-end" v-if="activeChannel">
       <template v-for="l_message of messages">
         <template v-if="l_message.channel_id === activeChannel.id">
-          <div v-bind:key="l_message.id">
+          <div v-bind:key="l_message.id" class="q-pl-md q-pr-md" :class="{ 'bg-purple-2': l_message.message.includes('@' + user.username) }">
             <q-chat-message
               v-if="user && l_message.user_id === user.id"
               :name="getMessageSenderNameFromId(l_message.user_id)"
@@ -124,13 +130,13 @@
         <q-space />
 
         <!-- Centered Input Field -->
-        <q-input v-model="message" label="Type a command" dense filled rounded
+        <q-input v-model="message" label="Type a command" :disable="!activeChannel" dense filled rounded
           class="q-mx-auto q-pa-md"
           style="width: 80%; max-width: 80%;"
           @keydown.enter="sendMessage()"
         >
           <template v-slot:after>
-            <q-btn round dense flat icon="send" @click="sendMessage" />
+            <q-btn round dense flat icon="send" @click="sendMessage" :disable="!activeChannel" />
           </template>
         </q-input>
 
@@ -178,6 +184,7 @@
 <script lang="ts">
 import ChannelItem from 'components/ChannelItem.vue'
 import { ChannelMember, User, UserStatus, Message, Channel, ChannelType } from 'src/components/models'
+import { Notify } from 'quasar'
 
 export default {
   mounted () {
@@ -255,12 +262,20 @@ export default {
         }
       }
       return membersOfActiveChannel
+    },
+    myInvites () {
+      return this.$store.getters['main/myInvites']
     }
   },
   components: {
     ChannelItem
   },
   methods: {
+    getChannelById (id: number) {
+      for (const e of this.channels) {
+        if (e.id === id) return e
+      }
+    },
     getMessageSenderNameFromId (id: number) {
       let userFullname: string = ''
       this.users.forEach((user: User) => {
@@ -280,6 +295,20 @@ export default {
             switch (args[i]) {
               case '/list':
                 console.log(this.getMemersOfActiveChannel)
+                break
+              case '/invite':
+                if (!this.activeChannel) {
+                  Notify.create({ type: 'error', message: 'Channel is not selected.' })
+                  break
+                }
+                if (args.length === 1) Notify.create({ type: 'error', message: 'Missing nickname of an user to be invited.' })
+                else if (args.length === 2) {
+                  if (this.user.username === args[1]) {
+                    Notify.create({ type: 'error', message: 'You can not invite yourself.' })
+                    break
+                  }
+                  this.$store.commit('main/invite', args[1])
+                }
                 break
             }
           }
@@ -310,6 +339,7 @@ export default {
           this.$store.commit('main/setUserStatus', UserStatus.DND)
           break
       }
+      console.log(this.myInvites)
       this.status_menu = false
     },
     submitNewChannel () {

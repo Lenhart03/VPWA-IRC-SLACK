@@ -1,6 +1,6 @@
 import { MutationTree } from 'vuex'
 import { MainStateInterface } from './state'
-import { Message, Channel, UserStatus, User, ChannelMember } from 'components/models'
+import { Invite, Message, Channel, UserStatus, User, ChannelMember } from 'components/models'
 
 const mutation: MutationTree<MainStateInterface> = {
   selectChannel (state: MainStateInterface, channel: Channel) {
@@ -43,6 +43,44 @@ const mutation: MutationTree<MainStateInterface> = {
       state.active_channel = null
     }
     state.channel_members.splice(state.channel_members.indexOf(channelMember), 1)
+  },
+  invite (state: MainStateInterface, username: string) {
+    if (!state.user || !state.active_channel) return
+    for (const user of state.users) {
+      if (user.username === username) {
+        const invite: Invite = {
+          channel_id: state.active_channel.id,
+          source_id: state.user.id,
+          target_id: user.id
+        }
+        state.invites.push(invite)
+      }
+    }
+  },
+  acceptInvite (state: MainStateInterface, channelId: number) {
+    if (!state.user) return
+    for (let i = 0; i < state.invites.length; i++) {
+      const invite: Invite = state.invites[i]
+      if (invite.channel_id === channelId && invite.target_id === state.user.id) {
+        state.invites.splice(i, 1)
+        const channelMember: ChannelMember = {
+          channel_id: invite.channel_id,
+          user_id: invite.target_id
+        }
+        state.channel_members.push(channelMember)
+        return
+      }
+    }
+  },
+  rejectInvite (state: MainStateInterface, channelId: number) {
+    if (!state.user) return
+    for (let i = 0; i < state.invites.length; i++) {
+      const invite: Invite = state.invites[i]
+      if (invite.channel_id === channelId && invite.target_id === state.user.id) {
+        state.invites.splice(i, 1)
+        return
+      }
+    }
   }
 }
 

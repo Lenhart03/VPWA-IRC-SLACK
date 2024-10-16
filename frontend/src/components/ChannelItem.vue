@@ -1,5 +1,5 @@
 <template>
-  <q-item clickable v-ripple @click="selectChannel()">
+  <q-item clickable v-ripple @click="selectChannel()" v-if="!(localValue && invite)">
     <q-item-section avatar>
       <q-icon v-if="channel_model?.type === ChannelType.Private" name="lock" />
       <q-icon v-else name="public" />
@@ -18,6 +18,21 @@
       </q-menu>
     </q-item-section>
   </q-item>
+  <q-item v-else class="bg-amber-1">
+    <q-item-section avatar>
+      <q-icon v-if="channel_model?.type === ChannelType.Private" name="lock" />
+      <q-icon v-else name="public" />
+    </q-item-section>
+    <q-item-section>
+      {{ channel_model.name }}
+    </q-item-section>
+    <q-item-section side>
+      <q-btn-group>
+        <q-btn round icon="check" class="bg-green-2" @click="acceptInvite" />
+        <q-btn round icon="close" class="bg-red-2" @click="rejectInvite" />
+      </q-btn-group>
+    </q-item-section>
+  </q-item>
 </template>
 
 <script lang="ts">
@@ -29,7 +44,8 @@ export default defineComponent({
   data () {
     return {
       ChannelType,
-      menu: false
+      menu: false,
+      localValue: true
     }
   },
 
@@ -37,6 +53,10 @@ export default defineComponent({
     channel_model: {
       type: Object as () => Channel,
       required: true
+    },
+    invite: {
+      type: Object as () => boolean,
+      required: false
     }
   },
 
@@ -50,6 +70,14 @@ export default defineComponent({
         user_id: this.$store.getters['main/getUser']
       }
       this.$store.commit('main/leaveChannel', channelMember)
+    },
+    acceptInvite () {
+      this.localValue = false
+      this.$store.commit('main/acceptInvite', this.channel_model.id)
+    },
+    rejectInvite () {
+      this.localValue = false
+      this.$store.commit('main/rejectInvite', this.channel_model.id)
     }
   }
 })

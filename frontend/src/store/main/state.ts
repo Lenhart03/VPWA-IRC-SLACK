@@ -1,4 +1,4 @@
-import { ChannelMember, Message, Channel, User } from 'components/models'
+import { Invite, ChannelMember, Message, Channel, User } from 'components/models'
 
 export interface MainStateInterface {
   active_channel: Channel | null
@@ -7,7 +7,8 @@ export interface MainStateInterface {
   users: Array<User>
   messages: Array<Message>
   channel_members: Array<ChannelMember>
-  test_channel: Channel | null
+  test_channel: Channel | null,
+  invites: Array<Invite>
 }
 
 function state (): MainStateInterface {
@@ -18,7 +19,8 @@ function state (): MainStateInterface {
     channels: [],
     messages: [],
     channel_members: [],
-    test_channel: null
+    test_channel: null,
+    invites: []
   }
 }
 
