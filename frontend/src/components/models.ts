@@ -54,3 +54,15 @@ export interface Invite {
   source_id: number,
   target_id: number
 }
+
+export interface VoteKick {
+  channel_id: number,
+  source_id: number,
+  target_id: number
+}
+
+export interface Revoke {
+  channel_id: number,
+  source_id: number,
+  target_id: number
+}

@@ -1,6 +1,6 @@
 import { MutationTree } from 'vuex'
 import { MainStateInterface } from './state'
-import { Invite, Message, Channel, UserStatus, User, ChannelMember } from 'components/models'
+import { Invite, Message, Channel, UserStatus, User, ChannelMember, VoteKick, Revoke } from 'components/models'
 
 const mutation: MutationTree<MainStateInterface> = {
   selectChannel (state: MainStateInterface, channel: Channel) {
@@ -54,6 +54,32 @@ const mutation: MutationTree<MainStateInterface> = {
           target_id: user.id
         }
         state.invites.push(invite)
+      }
+    }
+  },
+  voteKick (state: MainStateInterface, username: string) {
+    if (!state.user || !state.active_channel) return
+    for (const user of state.users) {
+      if (user.username === username) {
+        const voteKick: VoteKick = {
+          channel_id: state.active_channel.id,
+          source_id: state.user.id,
+          target_id: user.id
+        }
+        state.kicks.push(voteKick)
+      }
+    }
+  },
+  revoke (state: MainStateInterface, username: string) {
+    if (!state.user || !state.active_channel) return
+    for (const user of state.users) {
+      if (user.username === username) {
+        const revoke: Revoke = {
+          channel_id: state.active_channel.id,
+          source_id: state.user.id,
+          target_id: user.id
+        }
+        state.kicks.push(revoke)
       }
     }
   },

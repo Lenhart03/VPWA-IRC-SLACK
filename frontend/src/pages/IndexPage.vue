@@ -251,10 +251,12 @@ export default {
       return userChannels
     },
     getMemersOfActiveChannel () {
-      const membersOfActiveChannel: Array<Channel> = []
+      const membersOfActiveChannel: Array<User> = [] // Assuming 'Member' is the type of a channel member
       if (!this.user) return membersOfActiveChannel
+
       for (const lChannel of this.channels) {
         if (lChannel.id !== this.activeChannel.id) continue
+
         for (const lMember of this.channelMembers) {
           if (lMember.channel_id === this.activeChannel.id) {
             membersOfActiveChannel.push(lMember)
@@ -271,6 +273,16 @@ export default {
     ChannelItem
   },
   methods: {
+    getUsernameFromId (userId: number) {
+      const user = this.users.find((user: { id: unknown; }) => user.id === userId)
+      console.log(this.users)
+      // Check if the user exists and return username or full name
+      if (user) {
+        return user.username || `${user.firstname} ${user.lastname}`
+      } else {
+        return 'Unknown User' // Return this only if the user is not found
+      }
+    },
     getChannelById (id: number) {
       for (const e of this.channels) {
         if (e.id === id) return e
@@ -294,7 +306,34 @@ export default {
           for (let i = 0; i < args.length; i++) {
             switch (args[i]) {
               case '/list':
-                console.log(this.getMemersOfActiveChannel)
+                // eslint-disable-next-line no-case-declarations
+                const activeChannelMembers = this.getMemersOfActiveChannel
+                if (activeChannelMembers.length > 0) {
+                  // Map members to their usernames (or first/last name)
+                  const memberNames = activeChannelMembers
+                    .map(member => this.getUsernameFromId(member.id))
+                    .join(', ')
+
+                  const listMessage = `Members: ${memberNames}`
+
+                  const message: Message = {
+                    id: this.messages.length + 1,
+                    channel_id: this.activeChannel.id,
+                    user_id: this.user.id,
+                    message: listMessage
+                  }
+
+                  this.$store.commit('main/pushMessage', message)
+                } else {
+                  const message: Message = {
+                    id: this.messages.length + 1,
+                    channel_id: this.activeChannel.id,
+                    user_id: this.user.id,
+                    message: 'No members found in this channel.'
+                  }
+
+                  this.$store.commit('main/pushMessage', message)
+                }
                 break
               case '/invite':
                 if (!this.activeChannel) {
@@ -310,6 +349,21 @@ export default {
                   this.$store.commit('main/invite', args[1])
                 }
                 break
+              case '/quit':
+                console.log('quit - deleting channel')
+                break
+              case '/cancel':
+                console.log('cancel - deleting channel / leaving the channel')
+                break
+              case '/vote':
+                if (args.length === 1) Notify.create({ type: 'error', message: 'Missing nickname of the user you want to kick' })
+                else if (args.length === 2) {
+                  if (this.user.username === args[1]) {
+                    Notify.create({ type: 'error', message: 'You can not kick yourself' })
+                    break
+                  }
+                  this.$store.commit('main/voteKick', args[1])
+                }
             }
           }
         } else {
