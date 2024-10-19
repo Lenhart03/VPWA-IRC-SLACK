@@ -43,6 +43,9 @@
   <!-- Main Content Area -->
   <q-page class="flex column full-witdh" >
     <div class="q-pa-md column col justify-end" v-if="activeChannel">
+
+      <TypingIndicator ref="typingIndicator" />
+
       <template v-for="l_message of messages">
         <template v-if="l_message.channel_id === activeChannel.id">
           <div v-bind:key="l_message.id" class="q-pl-md q-pr-md" :class="{ 'bg-purple-2': l_message.message.includes('@' + user.username) }">
