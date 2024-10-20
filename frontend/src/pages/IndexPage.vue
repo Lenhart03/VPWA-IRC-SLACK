@@ -133,7 +133,7 @@
         <q-space />
 
         <!-- Centered Input Field -->
-        <q-input v-model="message" label="Type a command" :disable="!activeChannel" dense filled rounded
+        <q-input v-model="message" label="Type a command" dense filled rounded
           class="q-mx-auto q-pa-md"
           style="width: 80%; max-width: 80%;"
           @keydown.enter="sendMessage()"

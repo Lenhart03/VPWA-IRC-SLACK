@@ -7,7 +7,6 @@ import {
   useStore as vuexUseStore
 } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
-import Cookies from 'js-cookie'
 
 // import example from './module-example'
 // import { ExampleStateInterface } from './module-example/state';
@@ -57,11 +56,11 @@ export default store(function (/* { ssrContext } */) {
     plugins: [
       createPersistedState({
         getState: (key: unknown) => {
-          const state = Cookies.get(key as string)
+          const state = localStorage.getItem(key as string)
           return state ? JSON.parse(state) : undefined
         },
         setState: (key: unknown, state: unknown) => {
-          Cookies.set(key as string, JSON.stringify(state), { expires: 3, secure: true })
+          localStorage.setItem(key as string, JSON.stringify(state))
         }
       })
     ],
