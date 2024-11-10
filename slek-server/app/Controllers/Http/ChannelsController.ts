@@ -14,8 +14,9 @@ export default class ChannelsController {
 
   public async store({ auth, request }: HttpContextContract) {
     const data = request.all()
-    const channel = await Channel.create(data)
     const user = await auth.use('api').authenticate()
+    data.ownerId = user.id
+    const channel = await Channel.create(data)
     await user.related('channels').attach([channel.id])
     return channel
   }
