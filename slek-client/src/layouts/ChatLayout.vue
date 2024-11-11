@@ -44,33 +44,10 @@
       </q-scroll-area>
     </q-drawer>
 
-    <div class="q-pa-md column col justify-end" v-if="activeChannel">
+    <div class="column col justify-end" v-if="activeChannel">
       <q-page-container>
         <router-view />
       </q-page-container>
-      <!--
-      <template v-for="l_message of messages">
-        <template v-if="l_message.channel_id === activeChannel.id">
-          <div v-bind:key="l_message.id" class="q-pl-md q-pr-md" :class="{ 'bg-purple-2': l_message.message.includes('@' + user.username) }">
-            <q-chat-message
-              v-if="user && l_message.user_id === user.id"
-              :name="getMessageSenderNameFromId(l_message.user_id)"
-              :text="[l_message.message]"
-              stamp="7 minutes ago"
-              sent
-              bg-color="amber-7"
-            />
-            <q-chat-message
-              v-else
-              :name="getMessageSenderNameFromId(l_message.user_id)"
-              :text="[l_message.message]"
-              stamp="7 minutes ago"
-              bg-color="primary"
-            />
-          </div>
-        </template>
-      </template>
-      -->
     </div>
     <q-footer elevated>
       <q-toolbar class="q-pa-md">

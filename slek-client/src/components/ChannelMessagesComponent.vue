@@ -1,14 +1,20 @@
 <template>
   <q-scroll-area ref="area" style="width: 100%; height: calc(100vh - 150px)">
-    <div style="width: 100%; max-width: 400px; margin: 0 auto;">
-      <q-chat-message v-for="message in messages"
-        :key="message.id"
-        :name="message.author.nickname"
-        :text="[message.content]"
-        :stamp="timeAgo(message.createdAt)"
-        :sent="isMine(message)"
-      />
+
+    <div style="width: 100%; margin: 0 auto; padding: 30px">
+      <template v-for="message in messages" :key="message.id">
+        <div :class="{ 'bg-purple-2': message.content.includes('@' + user?.nickname) }">
+          <q-chat-message
+            :name="message.author.nickname"
+            :text="[message.content]"
+            :stamp="timeAgo(message.createdAt)"
+            :sent="isMine(message)"
+            :bg-color="isMine(message) ? 'gray-7' : 'blue-4'"
+          />
+        </div>
+      </template>
     </div>
+
   </q-scroll-area>
 </template>
 
@@ -36,6 +42,9 @@ export default defineComponent({
   computed: {
     currentUser () {
       return this.$store.state.auth.user?.id
+    },
+    user () {
+      return this.$store.state.auth.user
     }
   },
   methods: {
