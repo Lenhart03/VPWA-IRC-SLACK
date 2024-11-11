@@ -23,6 +23,7 @@ export interface User {
   lastname: string
   nickname: string
   email: string
+  status: 'offline' | 'online' | 'dnd'
   createdAt: string
   updatedAt: string
 }
