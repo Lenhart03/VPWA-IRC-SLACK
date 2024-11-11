@@ -3,7 +3,8 @@ import { StateInterface } from '../index'
 import { UserStatusInterface } from './state'
 
 const getters: GetterTree<UserStatusInterface, StateInterface> = {
-  status: (state) => state.status
+  user: (state) => state.user,
+  userStatus: (state) => state.user ? state.user.status : 'offline' // Fallback to 'offline' if user is null
 }
 
 export default getters
