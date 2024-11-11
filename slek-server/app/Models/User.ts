@@ -33,7 +33,6 @@ export default class User extends BaseModel {
   @column()
   public status: 'online' | 'offline' | 'dnd'
 
-
   @hasMany(() => Message, {
     foreignKey: 'createdBy',
   })
