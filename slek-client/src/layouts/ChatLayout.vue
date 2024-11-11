@@ -44,17 +44,7 @@
       </q-scroll-area>
     </q-drawer>
 
-    <!--
-      <q-footer>
-        <q-toolbar class="bg-grey-3 text-black row">
-          <q-input v-model="message" :disable="loading" @keydown.enter.prevent="send" rounded outlined dense class="WAL__field col-grow q-mr-sm" bg-color="white" placeholder="Type a message" />
-          <q-btn :disable="loading" @click="send" round flat icon="send" />
-        </q-toolbar>
-      </q-footer>
-    -->
-
-      <div class="q-pa-md column col justify-end" v-if="activeChannel">
-
+    <div class="column col justify-end" v-if="activeChannel">
       <q-page-container>
         <router-view />
       </q-page-container>
@@ -68,9 +58,9 @@
           <q-avatar size="50px" @click="status_menu = true" class="cursor-pointer">
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
-            <div class="q-ml-sm" v-if="user">
+          <div class="q-ml-sm" v-if="user">
               <div class="text-subtitle2">{{ user.firstname + ' ' + user.lastname }}</div>
-              <div class="text-caption">{{ status }}</div>
+              <div class="text-caption">{{ user.status.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') }}</div>
             </div>
 
           <!-- Dropdown menu for changing status -->
@@ -159,8 +149,8 @@ import { channelService } from 'src/services'
 export default defineComponent({
   name: 'ChatLayout',
   mounted () {
+    console.log(this.user)
     this.joinUserChannels(this.user.id)
-    console.log(this.invites)
     this.$store.commit('channels/INIT_LOAD_CHANNELS')
   },
   data () {
@@ -187,6 +177,14 @@ export default defineComponent({
     ...mapGetters('auth', {
       user: 'user'
     }),
+    user_status: {
+      get () {
+        return this.$store.getters('auth/user').status
+      },
+      set (value: 'offline' | 'online' | 'dnd') {
+        this.$store.commit('auth/SET_USER_STATUS', value)
+      }
+    },
     invites () {
       return JSON.parse(JSON.stringify(this.$store.getters['channels/invites']))
     },
