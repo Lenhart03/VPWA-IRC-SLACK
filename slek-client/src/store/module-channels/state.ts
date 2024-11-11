@@ -7,6 +7,10 @@ export interface ChannelsStateInterface {
   active: Channel | null
   channels: Channel[]
   invites: Channel[]
+  pagination: { [channelId: number]: {
+      page: number,
+      hasMore: boolean}
+  }
 }
 
 function state (): ChannelsStateInterface {
@@ -16,7 +20,8 @@ function state (): ChannelsStateInterface {
     messages: {},
     active: null,
     channels: [],
-    invites: []
+    invites: [],
+    pagination: {} // Track the pagination status of each channel
   }
 }
 

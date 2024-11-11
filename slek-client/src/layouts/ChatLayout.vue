@@ -58,29 +58,6 @@
       <q-page-container>
         <router-view />
       </q-page-container>
-      <!--
-      <template v-for="l_message of messages">
-        <template v-if="l_message.channel_id === activeChannel.id">
-          <div v-bind:key="l_message.id" class="q-pl-md q-pr-md" :class="{ 'bg-purple-2': l_message.message.includes('@' + user.username) }">
-            <q-chat-message
-              v-if="user && l_message.user_id === user.id"
-              :name="getMessageSenderNameFromId(l_message.user_id)"
-              :text="[l_message.message]"
-              stamp="7 minutes ago"
-              sent
-              bg-color="amber-7"
-            />
-            <q-chat-message
-              v-else
-              :name="getMessageSenderNameFromId(l_message.user_id)"
-              :text="[l_message.message]"
-              stamp="7 minutes ago"
-              bg-color="primary"
-            />
-          </div>
-        </template>
-      </template>
-      -->
     </div>
     <q-footer elevated>
       <q-toolbar class="q-pa-md">
@@ -91,27 +68,25 @@
           <q-avatar size="50px" @click="status_menu = true" class="cursor-pointer">
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
-          <!--
-          <div class="q-ml-sm" v-if="user">
+            <div class="q-ml-sm" v-if="user">
               <div class="text-subtitle2">{{ user.firstname + ' ' + user.lastname }}</div>
               <div class="text-caption">{{ status }}</div>
             </div>
-          -->
 
           <!-- Dropdown menu for changing status -->
           <q-menu v-model="status_menu" anchor="bottom left" self="top left">
             <q-list>
-              <q-item clickable v-ripple @click="setStatus('Online')">
+              <q-item clickable v-ripple @click="setStatus('online')">
                 <q-item-section avatar><q-icon name="cloud_done" /></q-item-section>
                 <q-item-section>Online</q-item-section>
               </q-item>
 
-              <q-item clickable v-ripple @click="setStatus('Offline')">
+              <q-item clickable v-ripple @click="setStatus('offline')">
                 <q-item-section avatar><q-icon name="cloud_off" /></q-item-section>
                 <q-item-section>Offline</q-item-section>
               </q-item>
 
-              <q-item clickable v-ripple @click="setStatus('Do Not Disturb')">
+              <q-item clickable v-ripple @click="setStatus('dnd')">
                 <q-item-section avatar><q-icon name="do_not_disturb" /></q-item-section>
                 <q-item-section>Do Not Disturb</q-item-section>
               </q-item>
@@ -195,6 +170,7 @@ export default defineComponent({
       loading: false,
       showCreateChannelDialog: false,
       status_menu: false,
+      status: 'Online',
       newChannelData: {
         name: '',
         private: false
@@ -213,7 +189,10 @@ export default defineComponent({
     }),
     invites () {
       return JSON.parse(JSON.stringify(this.$store.getters['channels/invites']))
-    }
+    },
+    ...mapGetters('user', {
+      userStatus: 'status'
+    })
   },
   components: {
     ChannelItem
@@ -252,8 +231,12 @@ export default defineComponent({
         type: this.newChannelData.private ? ChannelType.PRIVATE : ChannelType.PUBLIC
       })
     },
+    ...mapActions('user', ['updateStatus']),
     setStatus (status: string) {
-      console.log(status)
+      this.status = status // Update the status variable
+      this.status_menu = false // Close the dropdown menu
+      console.log('Status set to: ', status) // Optional: Console log for debugging
+      this.updateStatus(status)
     },
     openCreateChannelDialog () {
       if (!this.showCreateChannelDialog) this.showCreateChannelDialog = true

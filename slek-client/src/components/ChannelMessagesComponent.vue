@@ -51,7 +51,7 @@ export default defineComponent({
       const date = new Date(timestamp).getTime()
       const secondsAgo = Math.floor((now - date) / 1000)
 
-      if (secondsAgo < 60) return `${secondsAgo} seconds ago`
+      if (secondsAgo < 60) return 'just now'
       const minutesAgo = Math.floor(secondsAgo / 60)
       if (minutesAgo < 60) return `${minutesAgo} minutes ago`
       const hoursAgo = Math.floor(minutesAgo / 60)

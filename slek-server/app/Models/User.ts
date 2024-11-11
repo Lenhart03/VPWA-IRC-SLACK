@@ -30,6 +30,9 @@ export default class User extends BaseModel {
   @column({ serializeAs: null })
   public password: string
 
+  @column()
+  public status: 'online' | 'offline' | 'dnd'
+
   @hasMany(() => Message, {
     foreignKey: 'createdBy',
   })

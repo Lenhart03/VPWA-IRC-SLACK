@@ -45,6 +45,18 @@ const mutation: MutationTree<ChannelsStateInterface> = {
   },
   REMOVE_INVITE (state, channelId) {
     state.invites = state.invites.filter(invite => invite.id !== channelId)
+  },
+  SET_MESSAGES (state, { channelId, messages }) {
+    state.messages[channelId] = messages
+  },
+  ADD_MESSAGES (state, { channelId, messages }) {
+    if (!state.messages[channelId]) {
+      state.messages[channelId] = []
+    }
+    state.messages[channelId] = [...messages, ...state.messages[channelId]]
+  },
+  SET_PAGINATION (state, { channelId, pagination }) {
+    state.pagination[channelId] = pagination
   }
 }
 

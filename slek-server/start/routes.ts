@@ -31,6 +31,9 @@ Route.group(() => {
   Route.get('me', 'AuthController.me').middleware('auth')
 }).prefix('auth')
 
+// User status update route
+Route.put('user/status', 'UsersController.updateStatus').middleware('auth')
+
 Route.resource('channel', 'ChannelsController').middleware({ '*': ['auth'] })
 Route.post('invite', 'ChannelsController.invite').middleware('auth')
 Route.post('leave', 'ChannelsController.leave').middleware('auth')

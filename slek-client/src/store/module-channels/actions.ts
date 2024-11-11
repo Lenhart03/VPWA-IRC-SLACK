@@ -3,6 +3,7 @@ import { StateInterface } from '../index'
 import { ChannelsStateInterface } from './state'
 import { channelService } from 'src/services'
 import { RawMessage, ChannelData } from 'src/contracts'
+import MessageService from 'src/services/MessageService'
 
 const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
   async joinUserChannels ({ dispatch }, userId: number) {
@@ -44,6 +45,31 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
     } catch (err) {
       console.log('ERROR at createChannel', err)
       throw err
+    }
+  },
+  async loadMessages ({ commit, state }, { channelId }) {
+    const currentPage = state.pagination[channelId]?.page || 1
+    const nextPage = currentPage + 1
+    const hasMore = state.pagination[channelId]?.hasMore !== false // Continue only if more pages are available
+
+    if (!hasMore) return // Stop if no more pages are available
+
+    try {
+      // Fetch messages using MessageService
+      const messages = await MessageService.loadMessages(channelId, nextPage, commit)
+
+      // Assume we received all pages if fewer messages than expected (e.g., < 20)
+      const hasMorePages = messages.length >= 20
+
+      // Commit the messages and pagination info
+      commit('ADD_MESSAGES', {
+        channelId,
+        messages,
+        page: nextPage,
+        hasMore: hasMorePages
+      })
+    } catch (error) {
+      console.error('Error loading messages:', error)
     }
   }
 }
