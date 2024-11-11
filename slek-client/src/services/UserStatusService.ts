@@ -1,19 +1,15 @@
 import { api } from 'src/boot/axios'
-import { Commit } from 'vuex'
 
 class StatusService {
-  // Updates the user's status in the backend and commits to Vuex
-  public async updateStatus (status: string, commit: Commit): Promise<void> {
+  // Updates the user's status in the backend
+  public async updateStatus (status: string): Promise<void> {
     try {
       // Make an API call to update the status
       await api.put('/user/status', { status })
-
-      // Commit the new status to the Vuex store
-      commit('auth/SET_STATUS', status, { root: true }) // Assumes auth namespace
       console.log('Status successfully updated:', status)
     } catch (error) {
       console.error('Failed to update status:', error)
-      throw error // Optional: re-throw error if you want to handle it in the caller
+      throw error // Re-throw error if you want to handle it in the caller
     }
   }
 

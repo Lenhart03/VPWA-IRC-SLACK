@@ -230,11 +230,11 @@ export default defineComponent({
       })
     },
     ...mapActions('user', ['updateStatus']),
-    setStatus (status: string) {
-      this.status = status // Update the status variable
+    setStatus (status: 'online' | 'offline' | 'dnd') {
+      this.user_status = status.toLowerCase()
       this.status_menu = false // Close the dropdown menu
+      this.updateStatus(status) // Dispatch the action to update status
       console.log('Status set to: ', status) // Optional: Console log for debugging
-      this.updateStatus(status)
     },
     openCreateChannelDialog () {
       if (!this.showCreateChannelDialog) this.showCreateChannelDialog = true
