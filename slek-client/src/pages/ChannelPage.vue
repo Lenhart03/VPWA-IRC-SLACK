@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <channel-messages-component :messages="messages" />
+    <channel-messages-component :messages="messages" ref="channelMessagesComponent" />
   </q-page>
 </template>
 

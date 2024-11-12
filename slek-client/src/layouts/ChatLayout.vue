@@ -152,6 +152,9 @@ export default defineComponent({
     console.log(this.user)
     this.joinUserChannels(this.user.id)
     this.$store.commit('channels/INIT_LOAD_CHANNELS')
+    setTimeout(() => {
+      this.$store.commit('channels/SET_ACTIVE', this.channels[0])
+    }, 100)
   },
   data () {
     return {

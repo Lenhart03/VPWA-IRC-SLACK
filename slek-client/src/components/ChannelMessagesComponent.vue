@@ -1,5 +1,5 @@
 <template>
-  <q-scroll-area ref="area" style="width: 100%; height: calc(100vh - 150px)">
+  <q-scroll-area ref="area" style="width: 100%; height: calc(100vh - 160px)">
 
     <div style="width: 100%; margin: 0 auto; padding: 30px">
       <template v-for="message in messages" :key="message.id">
@@ -25,6 +25,9 @@ import { defineComponent, PropType } from 'vue'
 
 export default defineComponent({
   name: 'ChannelMessagesComponent',
+  mounted () {
+    this.$nextTick(() => this.scrollMessages())
+  },
   props: {
     messages: {
       type: Array as PropType<SerializedMessage[]>,
@@ -33,6 +36,14 @@ export default defineComponent({
   },
   watch: {
     messages: {
+      immediate: true,
+      handler () {
+        this.$nextTick(() => this.scrollMessages())
+      },
+      deep: true
+    },
+    activeChannel: {
+      immediate: true,
       handler () {
         this.$nextTick(() => this.scrollMessages())
       },
@@ -45,12 +56,15 @@ export default defineComponent({
     },
     user () {
       return this.$store.state.auth.user
+    },
+    activeChannel () {
+      return this.$store.state.channels.active
     }
   },
   methods: {
     scrollMessages () {
       const area = this.$refs.area as QScrollArea
-      area && area.setScrollPercentage('vertical', 1.1)
+      area && area.setScrollPercentage('vertical', 10.0)
     },
     isMine (message: SerializedMessage): boolean {
       return message.author.id === this.currentUser
