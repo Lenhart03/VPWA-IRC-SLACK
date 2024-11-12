@@ -38,6 +38,24 @@ class ChannelService {
     return channel
   }
 
+  public async joinChannelByName (channelName: string): Promise<Channel> {
+    try {
+      // Make an API call to attempt joining the channel
+      const response = await api.post('/channels/join', { channelName })
+      const channel = response.data
+
+      if (!channel.isPublic) {
+        throw new Error('Cannot join private channels directly')
+      }
+
+      console.log('Joined channel successfully:', channel.name)
+      return channel
+    } catch (error) {
+      console.error('Failed to join channel:', error)
+      throw error
+    }
+  }
+
   public leave (name: number): boolean {
     const channel = this.channels.get(name)
 

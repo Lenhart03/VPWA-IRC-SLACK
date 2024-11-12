@@ -15,6 +15,7 @@ const getters: GetterTree<ChannelsStateInterface, StateInterface> = {
       return messages.length > 0 ? messages[messages.length - 1] : null
     }
   },
+  joinedChannelsState: (state) => state.channels, // Returns the list of channels from the state
   invites (context) {
     return context.invites
   },

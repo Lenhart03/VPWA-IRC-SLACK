@@ -4,6 +4,7 @@ import { ChannelsStateInterface } from './state'
 import { channelService } from 'src/services'
 import { RawMessage, ChannelData } from 'src/contracts'
 import MessageService from 'src/services/MessageService'
+import { api } from 'src/boot/axios'
 
 const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
   async joinUserChannels ({ dispatch }, userId: number) {
@@ -13,6 +14,18 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
     } catch (err) {
       console.log('ERROR joinUserChannels', err)
       throw err
+    }
+  },
+  async joinChannelByName ({ commit }, channelName: string) {
+    try {
+      // Call the service to attempt joining the channel
+      const channel = await channelService.joinChannelByName(channelName)
+
+      // If successful, add channel to the Vuex state
+      commit('ADD_CHANNEL', channel)
+      commit('SET_ACTIVE_CHANNEL', channel)
+    } catch (error) {
+      console.error('Failed to join channel:', error)
     }
   },
   async join ({ commit }, channelId: number) {
@@ -45,6 +58,14 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
     } catch (err) {
       console.log('ERROR at createChannel', err)
       throw err
+    }
+  },
+  async fetchChannels ({ commit }, userId: number) {
+    try {
+      const response = await api.get('/channel?user_id=' + userId)
+      commit('SET_CHANNELS', response.data)
+    } catch (error) {
+      console.error('Failed to fetch channels:', error)
     }
   },
   async loadMessages ({ commit, state }, { channelId }) {

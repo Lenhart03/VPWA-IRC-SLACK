@@ -207,7 +207,22 @@ export default defineComponent({
             const nickname = args[1]
             console.log('inviting', nickname, 'to', this.activeChannel)
             channelService.inviteUserToChannel(nickname, this.activeChannel?.id)
+            break
           }
+          case '/join': {
+            const channelName = args[1]
+            if (channelName) {
+              console.log('Attempting to join channel:', channelName)
+              await this.joinChannelByName(channelName, this.$store)
+              await this.fetchChannels(this.user.id) // Make sure fetchChannels is awaited to complete
+              console.log('Updated channels:', this.channels) // Log the channels to verify
+            } else {
+              console.error('Channel name not specified for join.')
+            }
+            break
+          }
+          default:
+            console.warn('Unknown command:', args[0])
         }
       } else {
         this.loading = true
@@ -222,6 +237,7 @@ export default defineComponent({
     ...mapActions('auth', ['logout']),
     ...mapActions('channels', ['addMessage']),
     ...mapActions('channels', ['joinUserChannels']),
+    ...mapActions('channels', ['fetchChannels', 'joinChannelByName']),
     submitNewChannel () {
       this.showCreateChannelDialog = false
       this.$store.dispatch('channels/create', {

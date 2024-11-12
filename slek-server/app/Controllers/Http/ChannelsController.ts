@@ -57,4 +57,42 @@ export default class ChannelsController {
     const user = await auth.use('api').authenticate()
     await user?.related('invites').detach([data.channelId])
   }
+
+  public async join({ auth, request, response }: HttpContextContract) {
+    const { channelName } = request.only(['channelName'])
+    const user = await auth.use('api').authenticate()
+
+    // Find the channel by name
+    const channel = await Channel.query().where('name', channelName).first()
+
+    if (!channel) {
+      // If the channel doesn't exist, return a 404 error
+      return response.status(404).json({ message: 'Channel not found' })
+    }
+
+    // Check if the channel is public
+    if (channel.type !== 'public') {
+      // If the channel is not public, return a 403 error
+      return response.status(403).json({ message: 'Cannot join private channels' })
+    }
+
+    // Check if the user is already a member of the channel using the `channels` relationship in User
+    const isMember = await user.related('channels')
+      .query()
+      .where('channels.id', channel.id) // Specify the table for the `id` column to avoid ambiguity
+      .first()
+    
+    if (isMember) {
+      return response.status(400).json({ message: 'You are already a member of this channel' })
+    }
+
+    // Add the user to the channel by attaching to the `channels` relationship in User
+    await user.related('channels').attach([channel.id])
+
+    // Return the channel details
+    return response.json({
+      message: `Joined channel ${channel.name} successfully`,
+      channel
+    })
+  }
 }
