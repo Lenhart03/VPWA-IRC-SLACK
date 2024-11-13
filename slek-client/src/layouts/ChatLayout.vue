@@ -232,7 +232,8 @@ export default defineComponent({
           }
           case '/quit': {
           // Check if the user is the owner of the active channel
-            if (this.user.id === this.activeChannel) { // resolve the owner id, then after do -> this.activeChannel.ownerId
+            console.log(this.user.id, this.activeChannel.ownerId)
+            if (this.user.id === this.activeChannel.ownerId) { // resolve the owner id, then after do -> this.activeChannel.ownerId
               await this.deleteChannel(this.activeChannel.id)
               this.$store.commit('SET_ACTIVE_CHANNEL', null) // Optionally, clear the active channel
               console.log(`Channel ${this.activeChannel.name} deleted successfully.`)

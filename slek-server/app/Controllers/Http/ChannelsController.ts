@@ -59,13 +59,16 @@ export default class ChannelsController {
   }
 
   public async deleteChannel({ auth, request, response }: HttpContextContract) {
+    console.log('test')
     const user = await auth.use('api').authenticate()
     const channelId = request.input('channelId')
+    console.log('test', channelId, user.id)
 
     const channel = await Channel.find(channelId)
     if (!channel) {
       return response.status(404).json({ message: 'Channel not found' })
     }
+    console.log('test', channelId, channel.ownerId, user.id)
 
     // Check if the user is the owner of the channel
     if (channel.ownerId !== user.id) {
@@ -95,11 +98,12 @@ export default class ChannelsController {
     }
 
     // Check if the user is already a member of the channel using the `channels` relationship in User
-    const isMember = await user.related('channels')
+    const isMember = await user
+      .related('channels')
       .query()
       .where('channels.id', channel.id) // Specify the table for the `id` column to avoid ambiguity
       .first()
-    
+
     if (isMember) {
       return response.status(400).json({ message: 'You are already a member of this channel' })
     }
@@ -110,7 +114,7 @@ export default class ChannelsController {
     // Return the channel details
     return response.json({
       message: `Joined channel ${channel.name} successfully`,
-      channel
+      channel,
     })
   }
 }

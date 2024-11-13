@@ -10,6 +10,7 @@ export interface ChannelData {
 
 export interface Channel {
     id: number
+    ownerId: number
     name: string
     type: ChannelType
     createdAt: string
