@@ -11,6 +11,7 @@ export interface ChannelsStateInterface {
       page: number,
       hasMore: boolean}
   }
+  ownerId: number
 }
 
 function state (): ChannelsStateInterface {
@@ -21,7 +22,8 @@ function state (): ChannelsStateInterface {
     active: null,
     channels: [],
     invites: [],
-    pagination: {} // Track the pagination status of each channel
+    pagination: {}, // Track the pagination status of each channel
+    ownerId: 0
   }
 }
 

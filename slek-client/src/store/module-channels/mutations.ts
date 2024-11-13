@@ -58,6 +58,9 @@ const mutation: MutationTree<ChannelsStateInterface> = {
   SET_CHANNELS (state, channels) {
     state.channels = channels
   },
+  DELETE_CHANNEL (state, channelId: number) {
+    state.channels = state.channels.filter(channel => channel.id !== channelId)
+  },
   SET_PAGINATION (state, { channelId, pagination }) {
     state.pagination[channelId] = pagination
   }

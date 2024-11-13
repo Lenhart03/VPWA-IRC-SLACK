@@ -230,6 +230,17 @@ export default defineComponent({
             }
             break
           }
+          case '/quit': {
+          // Check if the user is the owner of the active channel
+            if (this.user.id === this.activeChannel) { // resolve the owner id, then after do -> this.activeChannel.ownerId
+              await this.deleteChannel(this.activeChannel.id)
+              this.$store.commit('SET_ACTIVE_CHANNEL', null) // Optionally, clear the active channel
+              console.log(`Channel ${this.activeChannel.name} deleted successfully.`)
+            } else {
+              console.warn('Only the channel owner can delete this channel.')
+            }
+            break
+          }
           default:
             console.warn('Unknown command:', args[0])
         }
@@ -247,6 +258,7 @@ export default defineComponent({
     ...mapActions('channels', ['addMessage']),
     ...mapActions('channels', ['joinUserChannels']),
     ...mapActions('channels', ['fetchChannels', 'joinChannelByName']),
+    ...mapActions('channels', ['deleteChannel']), // Map the delete action
     submitNewChannel () {
       this.showCreateChannelDialog = false
       this.$store.dispatch('channels/create', {

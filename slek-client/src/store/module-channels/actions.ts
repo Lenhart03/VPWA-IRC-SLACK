@@ -50,6 +50,14 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
       throw err
     }
   },
+  async deleteChannel ({ commit }, channelId: number) {
+    try {
+      await api.delete('/channels/delete', { data: { channelId } })
+      commit('DELETE_CHANNEL', channelId) // Update state to remove the deleted channel
+    } catch (error) {
+      console.error('Failed to delete channel:', error)
+    }
+  },
   async leave ({ getters, commit }, channelId: number) {
     const leaving: number[] = channelId !== null ? [channelId] : getters.joinedChannels
 

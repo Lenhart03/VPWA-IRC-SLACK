@@ -58,6 +58,24 @@ export default class ChannelsController {
     await user?.related('invites').detach([data.channelId])
   }
 
+  public async deleteChannel({ auth, request, response }: HttpContextContract) {
+    const user = await auth.use('api').authenticate()
+    const channelId = request.input('channelId')
+
+    const channel = await Channel.find(channelId)
+    if (!channel) {
+      return response.status(404).json({ message: 'Channel not found' })
+    }
+
+    // Check if the user is the owner of the channel
+    if (channel.ownerId !== user.id) {
+      return response.status(403).json({ message: 'Only the owner can delete this channel' })
+    }
+
+    await channel.delete()
+    return response.json({ message: `Channel ${channel.name} deleted successfully` })
+  }
+
   public async join({ auth, request, response }: HttpContextContract) {
     const { channelName } = request.only(['channelName'])
     const user = await auth.use('api').authenticate()

@@ -18,8 +18,8 @@ export default class Channel extends BaseModel {
   @column()
   public type: ChannelType
 
-  @column()
-  public ownerId: number
+  @column({ columnName: 'owner_id' }) 
+  public ownerId: number  // Explicitly typed
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -33,13 +33,13 @@ export default class Channel extends BaseModel {
   public messages: HasMany<typeof Message>
 
   @belongsTo(() => User, {
-    foreignKey: 'ownerId',
+    foreignKey: 'ownerId',  // Ensure this foreign key is correct
   })
-  public author: BelongsTo<typeof User>
+  public owner: BelongsTo<typeof User>
 
   @manyToMany(() => Channel, {
     pivotTable: 'channel_users',
     pivotTimestamps: true,
   })
-  public channels: ManyToMany<typeof Channel>
+  public members: ManyToMany<typeof Channel>
 }
