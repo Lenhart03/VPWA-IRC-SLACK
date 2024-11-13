@@ -216,7 +216,13 @@ export default defineComponent({
             const channelName = args[1]
             if (channelName) {
               console.log('Attempting to join channel:', channelName)
-              await this.joinChannelByName(channelName, this.$store)
+              const joinedSuccessfully = await this.joinChannelByName(channelName)
+
+              if (!joinedSuccessfully) {
+                // If the channel does not exist, prompt the user to create it
+                this.newChannelData.name = channelName // Pre-fill the channel name
+                this.openCreateChannelDialog() // Open the create channel dialog
+              }
               await this.fetchChannels(this.user.id) // Make sure fetchChannels is awaited to complete
               console.log('Updated channels:', this.channels) // Log the channels to verify
             } else {
@@ -247,6 +253,7 @@ export default defineComponent({
         name: this.newChannelData.name,
         type: this.newChannelData.private ? ChannelType.PRIVATE : ChannelType.PUBLIC
       })
+      this.newChannelData.name = '' // Clear the field after creating the channel
     },
     ...mapActions('user', ['updateStatus']),
     setStatus (status: 'online' | 'offline' | 'dnd') {

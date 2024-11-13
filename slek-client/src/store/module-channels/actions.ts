@@ -5,6 +5,11 @@ import { channelService } from 'src/services'
 import { RawMessage, ChannelData } from 'src/contracts'
 import MessageService from 'src/services/MessageService'
 import { api } from 'src/boot/axios'
+import { AxiosError } from 'axios'
+
+function isAxiosError (error: unknown): error is AxiosError {
+  return (error as AxiosError).isAxiosError !== undefined
+}
 
 const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
   async joinUserChannels ({ dispatch }, userId: number) {
@@ -24,8 +29,15 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
       // If successful, add channel to the Vuex state
       commit('ADD_CHANNEL', channel)
       commit('SET_ACTIVE_CHANNEL', channel)
+      return true
     } catch (error) {
-      console.error('Failed to join channel:', error)
+      if (isAxiosError(error) && error.response?.status === 404) {
+        console.log(`Channel "${channelName}" not found.`)
+        return false // Indicate the channel was not found
+      } else {
+        console.error('Failed to join channel:', error)
+        throw error
+      }
     }
   },
   async join ({ commit }, channelId: number) {
