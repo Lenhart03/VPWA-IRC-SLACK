@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Channel from 'App/Models/Channel'
+import Channel, { ChannelType } from 'App/Models/Channel'
 import User from 'App/Models/User'
 import Invite from 'App/Models/Invite'
 
@@ -29,8 +29,17 @@ export default class ChannelsController {
 
   public async destroy({}: HttpContextContract) {}
 
-  public async invite({ request }: HttpContextContract) {
+  public async invite({ auth, request, response }: HttpContextContract) {
     const data = request.all()
+    const channel = await Channel.find(data.channelId)
+    if (channel?.type === ChannelType.PRIVATE) {
+      const user = await auth.use('api').authenticate()
+      if (channel.ownerId !== user.id) {
+        return response
+          .status(403)
+          .json({ message: 'Only the owner can invite to a private channel' })
+      }
+    }
     const invite = await Invite.create({
       userId: (await User.findBy('nickname', data.nickname))?.id,
       channelId: data.channelId,
@@ -56,6 +65,25 @@ export default class ChannelsController {
     const data = request.all()
     const user = await auth.use('api').authenticate()
     await user?.related('invites').detach([data.channelId])
+  }
+
+  public async cancel({ auth, request }: HttpContextContract) {
+    const data = request.all()
+    const user = await auth.use('api').authenticate()
+    const channel = await Channel.find(data.channelId)
+    await user.related('channels').detach([data.channelId])
+    if (channel?.ownerId === user.id) await channel.delete()
+  }
+
+  public async revoke({ auth, request, response }: HttpContextContract) {
+    const data = request.all()
+    const user = await auth.use('api').authenticate()
+    const channel = await Channel.findOrFail(data.channelId)
+    if (channel?.ownerId !== user.id) {
+      return response.status(403).json({ message: 'Only channel owner can revoke a member.' })
+    }
+    const member = await User.findByOrFail('nickname', data.nickname)
+    await channel.related('members').detach([member.id])
   }
 
   public async deleteChannel({ auth, request, response }: HttpContextContract) {
@@ -110,6 +138,8 @@ export default class ChannelsController {
 
     // Add the user to the channel by attaching to the `channels` relationship in User
     await user.related('channels').attach([channel.id])
+
+    await Invite.query().where('user_id', user.id).andWhere('channel_id', channel.id).delete()
 
     // Return the channel details
     return response.json({

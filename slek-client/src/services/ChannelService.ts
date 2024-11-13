@@ -1,4 +1,4 @@
-import { RawMessage, SerializedMessage, Channel, ChannelData } from 'src/contracts'
+import { RawMessage, SerializedMessage, Channel, ChannelData, ChannelType } from 'src/contracts'
 import { BootParams, SocketManager } from './SocketManager'
 import { api } from 'src/boot/axios'
 import { Store, Commit } from 'vuex'
@@ -42,9 +42,10 @@ class ChannelService {
     try {
       // Make an API call to attempt joining the channel
       const response = await api.post('/channels/join', { channelName })
-      const channel = response.data
+      const channel = response.data.channel
+      console.log(channel)
 
-      if (!channel.isPublic) {
+      if (channel.type !== ChannelType.PUBLIC) {
         throw new Error('Cannot join private channels directly')
       }
 
@@ -107,6 +108,15 @@ class ChannelService {
   public async rejectInvite (channelId: number | undefined, store: Store<unknown>) {
     await api.post('reject', { channelId })
     store.commit('channels/REJECT_INVITE', channelId)
+  }
+
+  public async cancel (channelId: number | undefined, store: Store<unknown>) {
+    await api.post('cancel', { channelId })
+    store.commit('channels/SET_ACTIVE', null)
+  }
+
+  public async revoke (channelId: number | undefined, nickname: string) {
+    await api.post('revoke', { channelId, nickname })
   }
 }
 

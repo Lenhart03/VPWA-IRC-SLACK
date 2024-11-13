@@ -200,7 +200,6 @@ export default defineComponent({
   },
   methods: {
     async send () {
-      if (!this.activeChannel) return
       this.message = this.message.trim()
       if (this.message[0] === '/') {
         const args = this.message.split(' ')
@@ -213,7 +212,8 @@ export default defineComponent({
             break
           }
           case '/join': {
-            const channelName = args[1]
+            const channelName = this.message.substring(args[0].length + 1)
+            console.log('"' + channelName + '"')
             if (channelName) {
               console.log('Attempting to join channel:', channelName)
               const joinedSuccessfully = await this.joinChannelByName(channelName)
@@ -232,6 +232,7 @@ export default defineComponent({
           }
           case '/quit': {
           // Check if the user is the owner of the active channel
+            if (!this.activeChannel) return
             console.log(this.user.id, this.activeChannel.ownerId)
             if (this.user.id === this.activeChannel.ownerId) { // resolve the owner id, then after do -> this.activeChannel.ownerId
               await this.deleteChannel(this.activeChannel.id)
@@ -242,10 +243,24 @@ export default defineComponent({
             }
             break
           }
+          case '/cancel': {
+            await channelService.cancel(this.activeChannel?.id, this.$store)
+            await this.fetchChannels(this.user.id)
+            break
+          }
+          case '/revoke': {
+            if (this.activeChannel?.ownerId !== this.user.id) {
+              console.warn('Only channel owner can revoke a member.')
+              break
+            }
+            await channelService.revoke(this.activeChannel?.id, this.message.substring(args[0].length + 1))
+            break
+          }
           default:
             console.warn('Unknown command:', args[0])
         }
       } else {
+        if (!this.activeChannel) return
         this.loading = true
         await this.addMessage({ channelId: this.activeChannel?.id, message: this.message })
         this.loading = false

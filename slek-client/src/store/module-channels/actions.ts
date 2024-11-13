@@ -2,7 +2,7 @@ import { ActionTree } from 'vuex'
 import { StateInterface } from '../index'
 import { ChannelsStateInterface } from './state'
 import { channelService } from 'src/services'
-import { RawMessage, ChannelData } from 'src/contracts'
+import { RawMessage, ChannelData, ChannelType } from 'src/contracts'
 import MessageService from 'src/services/MessageService'
 import { api } from 'src/boot/axios'
 import { AxiosError } from 'axios'
@@ -29,7 +29,8 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
       // If successful, add channel to the Vuex state
       commit('ADD_CHANNEL', channel)
       commit('SET_ACTIVE_CHANNEL', channel)
-      return true
+      commit('REMOVE_INVITE', channel.id)
+      return channel.type === ChannelType.PUBLIC
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
         console.log(`Channel "${channelName}" not found.`)
