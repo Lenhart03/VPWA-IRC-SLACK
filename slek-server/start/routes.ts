@@ -32,7 +32,7 @@ Route.group(() => {
 }).prefix('auth')
 
 // User status update route
-Route.put('user/status', 'UsersController.updateStatus').middleware('auth')
+// Route.put('user/status', 'UsersController.updateStatus').middleware('auth')
 
 Route.resource('channel', 'ChannelsController').middleware({ '*': ['auth'] })
 Route.post('invite', 'ChannelsController.invite').middleware('auth')
@@ -41,5 +41,6 @@ Route.post('accept', 'ChannelsController.accept').middleware('auth')
 Route.post('reject', 'ChannelsController.reject').middleware('auth')
 Route.post('cancel', 'ChannelsController.cancel').middleware('auth')
 Route.post('revoke', 'ChannelsController.revoke').middleware('auth')
+Route.post('kick', 'ChannelsController.kick').middleware('auth')
 Route.post('/channels/join', 'ChannelsController.join').middleware('auth')
 Route.delete('/channels/delete', 'ChannelsController.deleteChannel').middleware('auth')

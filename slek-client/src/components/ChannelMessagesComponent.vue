@@ -1,15 +1,24 @@
 <template>
-  <q-scroll-area ref="area" style="width: 100%; height: calc(100vh - 160px)">
+  <q-scroll-area ref="area" style="width: 100%; height: calc(100vh - 154px)">
 
     <div style="width: 100%; margin: 0 auto; padding: 30px">
       <template v-for="message in messages" :key="message.id">
         <div :class="{ 'bg-purple-2': message.content.includes('@' + user?.nickname) }">
           <q-chat-message
+            v-if="message.author"
             :name="message.author.nickname"
             :text="[message.content]"
-            :stamp="timeAgo(message.createdAt)"
+            :stamp="timeAgo(message.created_at)"
             :sent="isMine(message)"
             :bg-color="isMine(message) ? 'gray-7' : 'blue-4'"
+          />
+          <q-chat-message
+            v-else
+            name="[SYSTEM]"
+            :text="[message.content]"
+            :stamp="timeAgo(message.created_at)"
+            :sent="false"
+            :bg-color="false ? 'gray-7' : 'blue-4'"
           />
         </div>
       </template>
@@ -67,6 +76,7 @@ export default defineComponent({
       area && area.setScrollPercentage('vertical', 10.0)
     },
     isMine (message: SerializedMessage): boolean {
+      if (message.author.id === 0) { return false }
       return message.author.id === this.currentUser
     },
     timeAgo (timestamp: string) {

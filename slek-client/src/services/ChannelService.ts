@@ -2,6 +2,7 @@ import { RawMessage, SerializedMessage, Channel, ChannelData, ChannelType } from
 import { BootParams, SocketManager } from './SocketManager'
 import { api } from 'src/boot/axios'
 import { Store, Commit } from 'vuex'
+import { Notify, AppVisibility } from 'quasar'
 
 // creating instance of this class automatically connects to given socket.io namespace
 // subscribe is called with boot params, so you can use it to dispatch actions for socket events
@@ -9,9 +10,27 @@ import { Store, Commit } from 'vuex'
 class ChannelSocketManager extends SocketManager {
   public subscribe ({ store }: BootParams): void {
     const channelId = this.namespace.split('/').pop() as number | undefined
+    if (!channelId) return
 
     this.socket.on('message', (message: SerializedMessage) => {
       store.commit('channels/NEW_MESSAGE', { channelId, message })
+      if (AppVisibility.appVisible && store.getters['auth/user'].status !== 'do not disturb') {
+        console.log('MESSAGE NOTIFY')
+        const channels = store.getters['channels/joinedChannels']
+        console.log('channels', channels)
+        for (const channel of channels) {
+          if (+channel.id === +channelId) {
+            const maxLength = 32
+            const text = message.content.substring(0, Math.min(maxLength, message.content.length)) + (message.content.length > maxLength ? '...' : '')
+            Notify.create({
+              type: 'info',
+              position: 'top',
+              message: message.author.nickname + ' sent a new message in channel ' + channel.name + ': ' + text
+            })
+            break
+          }
+        }
+      }
     })
   }
 
@@ -26,6 +45,12 @@ class ChannelSocketManager extends SocketManager {
 
 class ChannelService {
   private channels: Map<number, ChannelSocketManager> = new Map()
+
+  public leaveAllChannels () {
+    this.channels.forEach((channelSocketManager: ChannelSocketManager, channelId: number) => {
+      this.leave(channelId)
+    })
+  }
 
   public join (id: number): ChannelSocketManager {
     if (this.channels.has(id)) {
@@ -57,8 +82,8 @@ class ChannelService {
     }
   }
 
-  public leave (name: number): boolean {
-    const channel = this.channels.get(name)
+  public leave (channelId: number): boolean {
+    const channel = this.channels.get(channelId)
 
     if (!channel) {
       return false
@@ -66,7 +91,7 @@ class ChannelService {
 
     // disconnect namespace and remove references to socket
     channel.destroy()
-    return this.channels.delete(name)
+    return this.channels.delete(channelId)
   }
 
   public in (id: number): ChannelSocketManager | undefined {
@@ -117,6 +142,10 @@ class ChannelService {
 
   public async revoke (channelId: number | undefined, nickname: string) {
     await api.post('revoke', { channelId, nickname })
+  }
+
+  public async kick (channelId: number | undefined, nickname: string) {
+    await api.post('kick', { channelId, nickname })
   }
 }
 

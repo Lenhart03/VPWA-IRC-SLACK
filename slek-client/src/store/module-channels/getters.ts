@@ -19,7 +19,11 @@ const getters: GetterTree<ChannelsStateInterface, StateInterface> = {
   invites (context) {
     return context.invites
   },
-  messages: (state) => (channelId: number) => state.messages[channelId] || []
+  messages: (state) => (channelId: number) => state.messages[channelId] || [],
+  allChannelMessages: (state) => () => state.messages || [],
+  members: (state) => {
+    return state.active?.members || []
+  }
 }
 
 export default getters

@@ -8,6 +8,9 @@ const getters: GetterTree<AuthStateInterface, StateInterface> = {
   },
   user (context) {
     return context.user
+  },
+  onlineUsers (context) {
+    return context.onlineUsers
   }
 }
 

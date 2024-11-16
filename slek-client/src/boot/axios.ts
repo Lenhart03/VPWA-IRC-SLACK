@@ -1,6 +1,7 @@
 import { boot } from 'quasar/wrappers'
 import axios, { AxiosInstance } from 'axios'
 import { authManager } from 'src/services'
+import { Notify } from 'quasar'
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -59,6 +60,32 @@ api.interceptors.response.use(
   (error) => {
     if (DEBUG) {
       console.error('<- ', error.response)
+    }
+
+    if (error.response.status !== 401) {
+      const validationErrors = error.response.data.errors
+      if (validationErrors && Array.isArray(validationErrors)) {
+        validationErrors.forEach(err => {
+          let argsString = '{ '
+          if (err.args) {
+            for (const key in err.args) {
+              argsString += `${key}: ${err.args[key]}, `
+            }
+            argsString = argsString.substring(0, argsString.length - 2) + ' }'
+          }
+          Notify.create({
+            type: 'negative',
+            position: 'top',
+            message: (err.message || 'Validation error occurred') + (err.field ? (' for field ' + err.field + ' ' + (err.args ? argsString : '')) : '')
+          })
+        })
+      } else {
+        Notify.create({
+          type: 'negative',
+          position: 'top',
+          message: error.response?.data?.message || 'An unexpected error occurred'
+        })
+      }
     }
 
     // server api request returned unathorized response so we trrigger logout

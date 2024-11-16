@@ -1,6 +1,7 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder'
 import Channel, { ChannelType } from 'App/Models/Channel'
-import User from 'App/Models/User'
+import Message from 'App/Models/Message'
+import { DateTime } from 'luxon'
 
 export default class ChannelSeeder extends BaseSeeder {
   public async run() {
@@ -20,5 +21,14 @@ export default class ChannelSeeder extends BaseSeeder {
         type: ChannelType.PRIVATE,
       },
     ])
+
+    const channels = await Channel.all()
+    channels.forEach(async (channel: Channel) => {
+      await Message.create({
+        content: 'Welcome to the new channel!',
+        channelId: channel.id,
+        createdAt: DateTime.local(),
+      })
+    })
   }
 }

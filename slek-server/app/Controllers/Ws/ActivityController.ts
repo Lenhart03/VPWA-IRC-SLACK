@@ -45,6 +45,11 @@ export default class ActivityController {
     if (userSockets.size === 0) {
       // notify other users
       socket.broadcast.emit('user:offline', auth.user)
+      const user = await auth.user
+      if (user) {
+        user.status = 'offline'
+        user.save()
+      }
     }
 
     logger.info('websocket disconnected', reason)

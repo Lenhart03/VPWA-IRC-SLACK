@@ -21,14 +21,15 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
       throw err
     }
   },
-  async joinChannelByName ({ commit }, channelName: string) {
+  async joinChannelByName ({ commit, dispatch }, channelName: string) {
     try {
       // Call the service to attempt joining the channel
       const channel = await channelService.joinChannelByName(channelName)
 
       // If successful, add channel to the Vuex state
+      dispatch('join', channel.id)
       commit('ADD_CHANNEL', channel)
-      commit('SET_ACTIVE_CHANNEL', channel)
+      commit('SET_ACTIVE', channel)
       commit('REMOVE_INVITE', channel.id)
       return channel.type === ChannelType.PUBLIC
     } catch (error) {
@@ -84,6 +85,7 @@ const actions: ActionTree<ChannelsStateInterface, StateInterface> = {
   async fetchChannels ({ commit }, userId: number) {
     try {
       const response = await api.get('/channel?user_id=' + userId)
+      console.log('ba', response.data)
       commit('SET_CHANNELS', response.data)
     } catch (error) {
       console.error('Failed to fetch channels:', error)

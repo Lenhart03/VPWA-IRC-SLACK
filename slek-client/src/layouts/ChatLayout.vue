@@ -2,12 +2,13 @@
   <q-layout view="hHh Lpr fFf">
     <q-header class="bg-primary text-white" elevated>
       <q-toolbar>
-        <q-btn flat icon="exit_to_app" @click="logout" aria-label="Settings" />
+        <q-btn flat icon="exit_to_app" @click="logout" aria-label="Log Out" />
         <q-space />
         <div class="text-h6" v-if="activeChannel">
           {{ activeChannel.name }}
         </div>
         <q-space />
+        <q-btn flat icon="people" @click="openDialog" aria-label="See Channel Members" />
       </q-toolbar>
     </q-header>
 
@@ -18,8 +19,8 @@
       :breakpoint="690"
     >
       <div class="row items-center justify-between q-mb-md q-pl-md q-pr-md">
-          <q-item-label header>Channels</q-item-label>
-          <q-btn round dense flat icon="add" @click.stop="openCreateChannelDialog" aria-label="Add New Chat" />
+        <q-item-label header>Channels</q-item-label>
+        <q-btn round dense flat icon="add" @click.stop="openCreateChannelDialog" aria-label="Add New Chat" />
       </div>
       <q-scroll-area style="height: calc(100% - 70px)">
         <q-list>
@@ -59,9 +60,9 @@
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
           <div class="q-ml-sm" v-if="user">
-              <div class="text-subtitle2">{{ user.firstname + ' ' + user.lastname }}</div>
-              <div class="text-caption">{{ user.status.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') }}</div>
-            </div>
+            <div class="text-subtitle2">{{ user.firstname + ' ' + user.lastname }}</div>
+            <div class="text-caption">{{ user.status.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') }}</div>
+          </div>
 
           <!-- Dropdown menu for changing status -->
           <q-menu v-model="status_menu" anchor="bottom left" self="top left">
@@ -136,15 +137,46 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="isDialogOpen">
+      <q-card style="min-width: 300px; max-width: 500px;">
+        <q-card-section class="row items-center justify-between">
+          <span class="text-h6">Members</span>
+          <q-btn icon="close" flat @click="closeDialog" />
+        </q-card-section>
+
+        <q-card-section>
+          <q-list>
+            <q-item v-for="member in members" :key="member.id" clickable :style="{ opacity: isOnline(member) ? '1' : '0.5' }
+            ">
+              <q-item-section avatar>
+                <q-avatar color="primary" text-color="white">
+                  {{ member.firstname.charAt(0).toUpperCase() + member.lastname.charAt(0).toUpperCase() }}
+                </q-avatar>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ member.firstname }} {{ member.lastname }}</q-item-label>
+                <q-item-label class="text-grey">{{ member.nickname }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Close" color="primary" @click="closeDialog" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-layout>
 </template>
 
 <script lang="ts">
 import ChannelItem from 'components/ChannelItem.vue'
-import { ChannelType } from 'src/contracts'
+import { ChannelType, SerializedMessage } from 'src/contracts'
 import { defineComponent } from 'vue'
 import { mapActions, mapGetters, mapMutations } from 'vuex'
 import { channelService } from 'src/services'
+import { User } from 'src/contracts/Auth'
 
 export default defineComponent({
   name: 'ChatLayout',
@@ -167,10 +199,20 @@ export default defineComponent({
       newChannelData: {
         name: '',
         private: false
-      }
+      },
+      isDialogOpen: false
     }
   },
   computed: {
+    onlineUsers (): User[] {
+      return this.$store.getters['auth/onlineUsers']
+    },
+    members (): User[] {
+      return this.$store.getters['channels/members']
+    },
+    messages (): SerializedMessage[] {
+      return this.$store.getters['channels/currentMessages']
+    },
     ...mapGetters('channels', {
       channels: 'joinedChannels'
     }),
@@ -199,8 +241,16 @@ export default defineComponent({
     ChannelItem
   },
   methods: {
+    isOnline (user: User) {
+      if (this.user.id === user.id) return true
+      if (this.onlineUsers.length > 0) {
+        return this.onlineUsers.findIndex((onlineUser) => onlineUser.id === user.id) >= 0
+      }
+      return false
+    },
     async send () {
       this.message = this.message.trim()
+      if (this.message.length === 0) return
       if (this.message[0] === '/') {
         const args = this.message.split(' ')
         switch (args[0]) {
@@ -236,7 +286,7 @@ export default defineComponent({
             console.log(this.user.id, this.activeChannel.ownerId)
             if (this.user.id === this.activeChannel.ownerId) { // resolve the owner id, then after do -> this.activeChannel.ownerId
               await this.deleteChannel(this.activeChannel.id)
-              this.$store.commit('SET_ACTIVE_CHANNEL', null) // Optionally, clear the active channel
+              this.$store.commit('SET_ACTIVE', null) // Optionally, clear the active channel
               console.log(`Channel ${this.activeChannel.name} deleted successfully.`)
             } else {
               console.warn('Only the channel owner can delete this channel.')
@@ -254,6 +304,14 @@ export default defineComponent({
               break
             }
             await channelService.revoke(this.activeChannel?.id, this.message.substring(args[0].length + 1))
+            break
+          }
+          case '/kick': {
+            await channelService.kick(this.activeChannel?.id, this.message.substring(args[0].length + 1))
+            break
+          }
+          case '/list': {
+            this.openDialog()
             break
           }
           default:
@@ -292,6 +350,12 @@ export default defineComponent({
     },
     openCreateChannelDialog () {
       if (!this.showCreateChannelDialog) this.showCreateChannelDialog = true
+    },
+    openDialog () {
+      this.isDialogOpen = true
+    },
+    closeDialog () {
+      this.isDialogOpen = false
     }
   }
 })

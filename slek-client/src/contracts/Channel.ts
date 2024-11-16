@@ -1,3 +1,5 @@
+import { User } from 'src/contracts/Auth'
+
 export enum ChannelType {
     PRIVATE = 'private',
     PUBLIC = 'public',
@@ -15,4 +17,5 @@ export interface Channel {
     type: ChannelType
     createdAt: string
     updatedAt: string
+    members: User[]
 }

@@ -1,23 +1,32 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import User from 'App/Models/User'
+import type { WsContextContract } from '@ioc:Ruby184/Socket.IO/WsContext'
 
 export default class UsersController {
-  public async updateStatus({ auth, request, response }: HttpContextContract) {
+  public async updateStatus({ socket, auth }: WsContextContract, status: string) {
     try {
-      const user = await auth.authenticate() // Ensure the user is authenticated
-      const newStatus = request.input('status') // Get 'status' from the request body
+      const user = await auth.authenticate()
 
-      if (!newStatus) {
-        return response.badRequest({ message: 'Status is required' }) // Handle missing status
+      if (!status) {
+        socket.emit('status-update-failed', { message: 'Status is required' })
+        return
       }
 
-      user.status = newStatus // Update the user's status
-      await user.save() // Save the changes to the database
+      user.status = status as 'online' | 'offline' | 'dnd'
+      await user.save()
 
-      return response.ok({ status: 'success', message: 'Status updated successfully' })
+      // Notify all clients except the sender about the status change
+      socket.broadcast.emit('statusChanged', { userId: user.id, status })
+
+      // Confirm the update to the sender
+      socket.emit('status-updated', { status: 'success', message: 'Status updated successfully' })
     } catch (error) {
-      console.error('Error updating status:', error) // Log the error for debugging
-      return response.status(500).json({ status: 'error', message: 'Failed to update status' })
+      console.error('Error updating status:', error)
+      socket.emit('status-update-failed', { message: 'Failed to update status' })
     }
+  }
+
+  public async getStatus({ auth }: HttpContextContract) {
+    const user = await auth.authenticate()
+    return user.status
   }
 }

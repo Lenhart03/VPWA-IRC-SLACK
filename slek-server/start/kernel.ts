@@ -41,3 +41,11 @@ Server.middleware.register([() => import('@ioc:Adonis/Core/BodyParser')])
 Server.middleware.registerNamed({
   auth: () => import('App/Middleware/Auth'),
 })
+
+// Schedule the task to run once a day at midnight (you can adjust the interval as needed)
+import cron from 'node-cron'
+import ChannelCleanupService from 'App/Services/ChannelCleanupService'
+cron.schedule('* * * * *', () => {
+  console.log('Running task to delete inactive channels...')
+  ChannelCleanupService.deleteInactiveChannels()
+})

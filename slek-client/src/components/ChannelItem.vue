@@ -9,9 +9,9 @@
     </q-item-section>
     <q-item-section side>
       <q-icon clickable name="more_vert" @click.stop="menu = !menu" round></q-icon>
-      <q-menu v-model="menu" anchor="bottom left" self="center left" class="bg-red text-white">
+      <q-menu v-model="menu" anchor="bottom left" self="center left" class="bg-grey-4">
         <q-list>
-          <q-item clickable v-ripple>
+          <q-item clickable v-ripple class="bg-red text-white">
             <q-item-section @click="leaveChannel()">Leave</q-item-section>
           </q-item>
         </q-list>
@@ -39,6 +39,7 @@
 import { ChannelType } from 'src/contracts'
 import { channelService } from 'src/services'
 import { defineComponent, PropType } from 'vue'
+
 export default defineComponent({
   name: 'ChannelItem',
 

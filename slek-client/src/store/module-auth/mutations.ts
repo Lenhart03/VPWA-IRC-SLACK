@@ -18,6 +18,16 @@ const mutation: MutationTree<AuthStateInterface> = {
   SET_USER_STATUS (state, status) {
     if (!state.user) return
     state.user.status = status
+  },
+  SET_ONLINE_USERS (state, onlineUsers) {
+    state.onlineUsers = onlineUsers
+  },
+  ADD_ONLINE_USER (state, user) {
+    state.onlineUsers.push(user)
+  },
+  REMOVE_ONLINE_USER (state, user) {
+    if (!user) return
+    state.onlineUsers.splice(state.onlineUsers.findIndex((onlineUser) => onlineUser.id === user.id))
   }
 }
 

@@ -14,15 +14,26 @@ export default class AuthController {
     const email = request.input('email')
     const password = request.input('password')
 
-    return auth.use('api').attempt(email, password)
+    const token = auth.use('api').attempt(email, password)
+    await token
+    const user = await auth.use('api').user!
+    user.status = 'online'
+    await user.save()
+
+    return token
   }
 
   async logout({ auth }: HttpContextContract) {
+    const user = await auth.use('api').user!
+    user.status = 'offline'
+    await user.save()
     return auth.use('api').logout()
   }
 
   async me({ auth }: HttpContextContract) {
-    await auth.user!.load('channels')
+    await auth.user!.load('channels', (channelQuery) => {
+      channelQuery.preload('members')
+    })
     await auth.user!.load('invites')
     return auth.user
   }

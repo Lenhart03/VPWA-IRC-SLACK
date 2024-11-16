@@ -1,5 +1,5 @@
 <template>
-  <q-page class="row items-center justify-evenly">
+  <q-page class="bg-grey-2">
     <channel-messages-component :messages="messages" ref="channelMessagesComponent" />
   </q-page>
 </template>
