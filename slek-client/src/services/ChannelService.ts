@@ -13,6 +13,7 @@ class ChannelSocketManager extends SocketManager {
     if (!channelId) return
 
     this.socket.on('message', (message: SerializedMessage) => {
+      store.commit('auth/REMOVE_LIVE_MESSAGE', message)
       store.commit('channels/NEW_MESSAGE', { channelId, message })
       if (AppVisibility.appVisible && store.getters['auth/user'].status !== 'dnd') {
         console.log('MESSAGE NOTIFY')

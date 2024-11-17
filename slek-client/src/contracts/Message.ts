@@ -9,5 +9,5 @@ export interface SerializedMessage {
   created_at: string,
   updated_at: string,
   id: number,
-  author: User
+  author: User,
 }

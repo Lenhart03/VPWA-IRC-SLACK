@@ -46,6 +46,7 @@
     </q-drawer>
 
     <div class="column col justify-end" v-if="activeChannel">
+
       <q-page-container>
         <router-view />
       </q-page-container>
@@ -200,11 +201,11 @@ import { mapActions, mapGetters, mapMutations } from 'vuex'
 import { authService, channelService } from 'src/services'
 import { User } from 'src/contracts/Auth'
 import { Notify } from 'quasar'
+import MessageService from 'src/services/MessageService'
 
 export default defineComponent({
   name: 'ChatLayout',
   mounted () {
-    console.warn(this.user)
     if (this.user.status !== 'offline') {
       this.joinUserChannels(this.user.id)
     }
@@ -227,6 +228,12 @@ export default defineComponent({
         private: false
       },
       isDialogOpen: false
+    }
+  },
+  watch: {
+    message (newValue) {
+      if (!this.activeChannel) return
+      MessageService.messageChange(newValue, this.activeChannel.id)
     }
   },
   computed: {
@@ -329,7 +336,7 @@ export default defineComponent({
               this.$store.commit('SET_ACTIVE', null) // Optionally, clear the active channel
               console.log(`Channel ${this.activeChannel.name} deleted successfully.`)
             } else {
-              console.warn('Only the channel owner can delete this channel.')
+              console.error('Only the channel owner can delete this channel.')
             }
             break
           }
@@ -340,7 +347,7 @@ export default defineComponent({
           }
           case '/revoke': {
             if (this.activeChannel?.ownerId !== this.user.id) {
-              console.warn('Only channel owner can revoke a member.')
+              console.error('Only channel owner can revoke a member.')
               break
             }
             await channelService.revoke(this.activeChannel?.id, this.message.substring(args[0].length + 1))
@@ -355,7 +362,7 @@ export default defineComponent({
             break
           }
           default:
-            console.warn('Unknown command:', args[0])
+            console.error('Unknown command:', args[0])
         }
       } else {
         if (!this.activeChannel) return
@@ -383,7 +390,6 @@ export default defineComponent({
     },
     ...mapActions('user', ['updateStatus']),
     setStatus (status: 'online' | 'offline' | 'dnd') {
-      console.warn(status, this.user.status)
       if (status === 'offline' && this.user.status !== 'offline') channelService.leaveAllChannels()
       else if (status !== 'offline' && this.user.status === 'offline') this.joinUserChannels(this.user.id)
       this.user_status = status.toLowerCase()

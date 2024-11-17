@@ -22,6 +22,15 @@ Ws.namespace('/status')
   })
   .on('statusChange', 'UsersController.updateStatus')
 
+Ws.namespace('/messageChange')
+  .connected(() => {
+    console.log('/messageChange connected')
+  })
+  .disconnected(() => {
+    console.log('/messageChange disconnect')
+  })
+  .on('messageChange', 'UsersController.messageChange')
+
 // this is dynamic namespace, in controller methods we can use params.name
 Ws.namespace('channels/:id')
   // .middleware('channel') // check if user can join given channel

@@ -1,5 +1,5 @@
 <template>
-  <q-scroll-area ref="area" style="width: 100%; height: calc(100vh - 154px)">
+  <q-scroll-area ref="area" :style="'width: 100%; height:' + (displayMessageIndex > -1 ? 'calc(100vh - 304px)' : 'calc(100vh - 204px)')">
 
     <div v-if="loading" style="text-align: center; margin-bottom: 10px;">
       <q-spinner-dots />
@@ -29,6 +29,48 @@
     </div>
 
   </q-scroll-area>
+
+  <q-list class="bg-white" style="padding: 0; margin: 0;">
+    <q-item v-if="displayMessageIndex > -1" style="height: 100px; max-height: 100px; padding: 0;" class="bg-amber-1">
+      <q-list style="width: 100%; padding: 0; margin: 0;">
+        <q-item class="text-bold bg-amber-2" style="margin: 0; padding: 0; min-height: 20px; max-height: 20px;">
+          <q-item-section>
+            <p style="margin: 0; padding: 0 10px;">Message content</p>
+          </q-item-section>
+          <q-item-section side>
+            <div @click="displayMessageIndex = -1" style="width: 20px; height: 20px; border: none; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              ×
+            </div>
+          </q-item-section>
+        </q-item>
+        <q-scroll-area style="height: 80px; width: 100%; padding: 0 10px;">
+          <q-list>
+            <p style="margin: 0;">{{ liveMessages.get(displayMessageIndex)?.content }}</p>
+          </q-list>
+        </q-scroll-area>
+      </q-list>
+    </q-item>
+    <q-item style="padding: 0; margin: 0; max-height: 50px; height: 50px;">
+      <q-item-section side>
+        Curently typing:
+      </q-item-section>
+      <q-item-section>
+        <q-list style="padding: 0; margin: 0; max-height: 50px; height: 50px; display: flex; flex-wrap: nowrap; overflow-y: hidden; overflow-x: auto; width: 100%;">
+          <q-item
+            v-for="([key, value], index) in liveMessages"
+            :key="index"
+            style="padding: 0 5px; margin: 0; max-height: 50px; height: 50px; display: inline-flex;"
+            :class="displayMessageIndex === key ? 'bg-amber-2' : 'bg-white'">
+            <q-item-section>
+              <q-item-label @click="displayLiveMessage(key)" class="link-text text-primary" style="cursor: pointer; text-decoration: underline; max-height: 30px;">
+                {{ getUserById(value.created_by)?.nickname }}
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-item-section>
+    </q-item>
+  </q-list>
 </template>
 
 <script lang="ts">
@@ -98,6 +140,17 @@ export default defineComponent({
     }
   },
   computed: {
+    displayMessageIndex: {
+      get () {
+        return this.$store.state.auth.displayMessageIndex
+      },
+      set (value: number) {
+        this.$store.commit('auth/SET_DISPLAY_MESSAGE_INDEX', value)
+      }
+    },
+    liveMessages () {
+      return this.$store.state.auth.liveMessages
+    },
     currentUser () {
       return this.$store.state.auth.user?.id
     },
@@ -106,9 +159,16 @@ export default defineComponent({
     },
     activeChannel () {
       return this.$store.state.channels.active
+    },
+    onlineUsers () {
+      return this.$store.state.auth.onlineUsers
     }
   },
   methods: {
+    getUserById (id: number) {
+      for (const user of this.onlineUsers.values()) { if (user.id === id) return user }
+      return undefined
+    },
     async loadMoreMessages () {
       if (this.loading || !this.hasMoreMessages) return
       this.loading = true
@@ -118,9 +178,7 @@ export default defineComponent({
         const scrollTarget = area.getScrollTarget() as HTMLElement
         const currentScrollPosition = scrollTarget.scrollHeight - scrollTarget.scrollTop
 
-        console.warn(this.localMessages)
         this.localMessages.unshift(...olderMessages)
-        console.warn(this.localMessages)
 
         this.$nextTick(() => {
           scrollTarget.scrollTop = scrollTarget.scrollHeight - currentScrollPosition
@@ -175,6 +233,9 @@ export default defineComponent({
       if (monthsAgo < 12) return `${monthsAgo} months ago`
       const yearsAgo = Math.floor(monthsAgo / 12)
       return `${yearsAgo} years ago`
+    },
+    displayLiveMessage (index: number) {
+      this.displayMessageIndex = index
     }
   }
 })
