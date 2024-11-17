@@ -54,7 +54,7 @@ export default class ActivityController {
             }
             socket.broadcast.emit('user:offline', user)
           }
-        }, 1000)
+        }, 5000)
       }
     }
 
