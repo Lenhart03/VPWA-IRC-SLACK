@@ -33,6 +33,9 @@ export default class User extends BaseModel {
   @column()
   public status: 'online' | 'offline' | 'dnd'
 
+  @column()
+  public notifyMentionsOnly: boolean
+
   @hasMany(() => Message, {
     foreignKey: 'createdBy',
   })

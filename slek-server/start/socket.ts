@@ -13,7 +13,14 @@ Ws.namespace('/')
   .connected('ActivityController.onConnected')
   .disconnected('ActivityController.onDisconnected')
 
-Ws.namespace('status').on('statusChange', 'UsersController.updateStatus')
+Ws.namespace('/status')
+  .connected(() => {
+    console.log('/status connected')
+  })
+  .disconnected(() => {
+    console.log('/status disconnect')
+  })
+  .on('statusChange', 'UsersController.updateStatus')
 
 // this is dynamic namespace, in controller methods we can use params.name
 Ws.namespace('channels/:id')

@@ -11,6 +11,9 @@ const getters: GetterTree<AuthStateInterface, StateInterface> = {
   },
   onlineUsers (context) {
     return context.onlineUsers
+  },
+  notifyMentionsOnly (context) {
+    return context.user?.notify_mentions_only
   }
 }
 

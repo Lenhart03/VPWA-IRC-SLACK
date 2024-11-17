@@ -1,6 +1,7 @@
 import type { AxiosError, AxiosRequestConfig } from 'axios'
 import type { ApiToken, LoginCredentials, RegisterData, User } from 'src/contracts'
 import { api } from 'src/boot/axios'
+import { Store } from 'vuex'
 
 class AuthService {
   async me (dontTriggerLogout = false): Promise<User | null> {
@@ -30,6 +31,11 @@ class AuthService {
 
   async logout (): Promise<void> {
     await api.post('auth/logout')
+  }
+
+  async setNotifyMentionsOnly (store: Store<unknown>, value:boolean) {
+    await api.post<boolean>('auth/setNotifyMentionsOnly', { value })
+    store.commit('auth/SET_NOTIFY_MENTIONS_ONLY', value)
   }
 }
 

@@ -43,12 +43,18 @@ export default class ActivityController {
 
     // user is disconnected
     if (userSockets.size === 0) {
-      // notify other users
-      socket.broadcast.emit('user:offline', auth.user)
-      const user = await auth.user
+      const user = auth.user
       if (user) {
-        user.status = 'offline'
-        user.save()
+        setTimeout(async () => {
+          const activeSockets = await socket.in(room).allSockets()
+          if (activeSockets.size === 0) {
+            if (user.status === 'online') {
+              await (user.status = 'offline')
+              await user.save()
+            }
+            socket.broadcast.emit('user:offline', user)
+          }
+        }, 1000)
       }
     }
 

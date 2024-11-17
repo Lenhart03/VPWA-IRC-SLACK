@@ -17,7 +17,7 @@ export default class AuthController {
     const token = auth.use('api').attempt(email, password)
     await token
     const user = await auth.use('api').user!
-    user.status = 'online'
+    await (user.status = 'online')
     await user.save()
 
     return token
@@ -25,7 +25,7 @@ export default class AuthController {
 
   async logout({ auth }: HttpContextContract) {
     const user = await auth.use('api').user!
-    user.status = 'offline'
+    await (user.status = 'offline')
     await user.save()
     return auth.use('api').logout()
   }
@@ -36,5 +36,13 @@ export default class AuthController {
     })
     await auth.user!.load('invites')
     return auth.user
+  }
+
+  async setNotifyMentionsOnly({ auth, request }: HttpContextContract): Promise<boolean> {
+    const data = request.all()
+    const user = await auth.use('api').user!
+    await (user.notifyMentionsOnly = data.value)
+    await user.save()
+    return data.value
   }
 }

@@ -10,6 +10,7 @@ const mutation: MutationTree<AuthStateInterface> = {
   AUTH_SUCCESS (state, user: User | null) {
     state.status = 'success'
     state.user = user
+    console.warn(user, state.user)
   },
   AUTH_ERROR (state, errors) {
     state.status = 'error'
@@ -20,14 +21,20 @@ const mutation: MutationTree<AuthStateInterface> = {
     state.user.status = status
   },
   SET_ONLINE_USERS (state, onlineUsers) {
-    state.onlineUsers = onlineUsers
+    state.onlineUsers = new Map()
+    onlineUsers.forEach((user: User) => state.onlineUsers.set(user.id, user))
   },
-  ADD_ONLINE_USER (state, user) {
-    state.onlineUsers.push(user)
+  SET_ONLINE_USER (state, user) {
+    state.onlineUsers.set(user.id, user)
+    console.warn(state.onlineUsers)
   },
   REMOVE_ONLINE_USER (state, user) {
     if (!user) return
-    state.onlineUsers.splice(state.onlineUsers.findIndex((onlineUser) => onlineUser.id === user.id))
+    state.onlineUsers.delete(user.id)
+  },
+  async SET_NOTIFY_MENTIONS_ONLY (state, value: boolean) {
+    if (!state.user) return
+    state.user.notify_mentions_only = value
   }
 }
 

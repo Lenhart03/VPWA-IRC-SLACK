@@ -12,6 +12,7 @@ export default class UsersSchema extends BaseSchema {
       table.string('email', 255).notNullable()
       table.string('password', 180).notNullable()
       table.enum('status', ['online', 'offline', 'dnd']).defaultTo('offline').notNullable()
+      table.boolean('notify_mentions_only').defaultTo(false).notNullable()
     })
   }
 

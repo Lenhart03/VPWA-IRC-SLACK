@@ -1,15 +1,15 @@
 import { User } from 'src/contracts'
 
 export interface AuthStateInterface {
-  onlineUsers: User[]
+  onlineUsers: Map<number, User>
   user: User | null,
   status: 'pending' | 'success' | 'error',
-  errors: { message: string, field?: string }[]
+  errors: { message: string, field?: string }[],
 }
 
 function state (): AuthStateInterface {
   return {
-    onlineUsers: [],
+    onlineUsers: new Map(),
     user: null,
     status: 'pending',
     errors: []

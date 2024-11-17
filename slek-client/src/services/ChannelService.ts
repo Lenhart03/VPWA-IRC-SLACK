@@ -14,20 +14,22 @@ class ChannelSocketManager extends SocketManager {
 
     this.socket.on('message', (message: SerializedMessage) => {
       store.commit('channels/NEW_MESSAGE', { channelId, message })
-      if (AppVisibility.appVisible && store.getters['auth/user'].status !== 'do not disturb') {
+      if (AppVisibility.appVisible && store.getters['auth/user'].status !== 'dnd') {
         console.log('MESSAGE NOTIFY')
         const channels = store.getters['channels/joinedChannels']
         console.log('channels', channels)
-        for (const channel of channels) {
-          if (+channel.id === +channelId) {
-            const maxLength = 32
-            const text = message.content.substring(0, Math.min(maxLength, message.content.length)) + (message.content.length > maxLength ? '...' : '')
-            Notify.create({
-              type: 'info',
-              position: 'top',
-              message: message.author.nickname + ' sent a new message in channel ' + channel.name + ': ' + text
-            })
-            break
+        if (!store.getters['auth/user'].notify_mentions_only || (store.getters['auth/user'].notify_mentions_only && message.content.includes('@' + store.getters['auth/user'].nickname))) {
+          for (const channel of channels) {
+            if (+channel.id === +channelId) {
+              const maxLength = 32
+              const text = message.content.substring(0, Math.min(maxLength, message.content.length)) + (message.content.length > maxLength ? '...' : '')
+              Notify.create({
+                type: 'info',
+                position: 'top',
+                message: message.author.nickname + ' sent a new message in channel ' + channel.name + ': ' + text
+              })
+              break
+            }
           }
         }
       }

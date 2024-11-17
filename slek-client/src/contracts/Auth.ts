@@ -26,4 +26,5 @@ export interface User {
   status: 'offline' | 'online' | 'dnd'
   createdAt: string
   updatedAt: string
+  notify_mentions_only: boolean
 }

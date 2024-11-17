@@ -56,7 +56,7 @@
         <!-- Profile Avatar on the left with clickable menu -->
         <div class="row items-center">
           <!-- Profile with Q-Menu -->
-          <q-avatar size="50px" @click="status_menu = true" class="cursor-pointer">
+          <q-avatar size="50px" class="cursor-pointer">
             <img src="https://cdn.quasar.dev/img/avatar.png" alt="Profile" />
           </q-avatar>
           <div class="q-ml-sm" v-if="user">
@@ -65,24 +65,47 @@
           </div>
 
           <!-- Dropdown menu for changing status -->
-          <q-menu v-model="status_menu" anchor="bottom left" self="top left">
-            <q-list>
-              <q-item clickable v-ripple @click="setStatus('online')">
-                <q-item-section avatar><q-icon name="cloud_done" /></q-item-section>
-                <q-item-section>Online</q-item-section>
-              </q-item>
+          <q-menu v-model="statusMenu" anchor="bottom left" self="top left">
+          <q-list>
 
-              <q-item clickable v-ripple @click="setStatus('offline')">
-                <q-item-section avatar><q-icon name="cloud_off" /></q-item-section>
-                <q-item-section>Offline</q-item-section>
-              </q-item>
+            <!-- Status Parent Item -->
+            <q-item clickable v-ripple @mouseover="statusSubMenu = true">
+              <q-item-section avatar><q-icon name="settings" /></q-item-section>
+              <q-item-section>Status</q-item-section>
+              <q-item-section side>
+                <q-icon name="keyboard_arrow_right" />
+              </q-item-section>
+            </q-item>
 
-              <q-item clickable v-ripple @click="setStatus('dnd')">
-                <q-item-section avatar><q-icon name="do_not_disturb" /></q-item-section>
-                <q-item-section>Do Not Disturb</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
+            <!-- Status Submenu -->
+            <q-menu v-model="statusSubMenu" @mouseenter="statusSubMenu = true" @mouseleave="statusSubMenu = false" anchor="center right" self="top left">
+              <q-list>
+                <q-item clickable v-ripple @click="setStatus('online')">
+                  <q-item-section avatar><q-icon name="cloud_done" /></q-item-section>
+                  <q-item-section>Online</q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple @click="setStatus('offline')">
+                  <q-item-section avatar><q-icon name="cloud_off" /></q-item-section>
+                  <q-item-section>Offline</q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple @click="setStatus('dnd')">
+                  <q-item-section avatar><q-icon name="do_not_disturb" /></q-item-section>
+                  <q-item-section>Do Not Disturb</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+
+            <!-- Notify Only Mentions (Checkbox) -->
+            <q-item>
+              <q-item-section>
+                <q-checkbox v-model="notifyMentionsOnly" label="Notify only mentions"/>
+              </q-item-section>
+            </q-item>
+
+          </q-list>
+        </q-menu>
         </div>
 
         <!-- Space between profile and input -->
@@ -146,10 +169,9 @@
 
         <q-card-section>
           <q-list>
-            <q-item v-for="member in members" :key="member.id" clickable :style="{ opacity: isOnline(member) ? '1' : '0.5' }
-            ">
+            <q-item v-for="member in members.values()" :key="member.id" clickable :style="{ opacity: isOnline(member) ? '1' : '0.5' }">
               <q-item-section avatar>
-                <q-avatar color="primary" text-color="white">
+                <q-avatar :color="isDnd(member) ? 'red' : 'primary'" text-color="white">
                   {{ member.firstname.charAt(0).toUpperCase() + member.lastname.charAt(0).toUpperCase() }}
                 </q-avatar>
               </q-item-section>
@@ -175,13 +197,13 @@ import ChannelItem from 'components/ChannelItem.vue'
 import { ChannelType, SerializedMessage } from 'src/contracts'
 import { defineComponent } from 'vue'
 import { mapActions, mapGetters, mapMutations } from 'vuex'
-import { channelService } from 'src/services'
+import { authService, channelService } from 'src/services'
 import { User } from 'src/contracts/Auth'
 
 export default defineComponent({
   name: 'ChatLayout',
   mounted () {
-    console.log(this.user)
+    console.warn(this.user)
     this.joinUserChannels(this.user.id)
     this.$store.commit('channels/INIT_LOAD_CHANNELS')
     setTimeout(() => {
@@ -194,7 +216,8 @@ export default defineComponent({
       message: '',
       loading: false,
       showCreateChannelDialog: false,
-      status_menu: false,
+      statusMenu: false,
+      statusSubMenu: false,
       status: 'Online',
       newChannelData: {
         name: '',
@@ -204,7 +227,15 @@ export default defineComponent({
     }
   },
   computed: {
-    onlineUsers (): User[] {
+    notifyMentionsOnly: {
+      get () {
+        return this.$store.getters['auth/notifyMentionsOnly']
+      },
+      set (value: boolean) {
+        authService.setNotifyMentionsOnly(this.$store, value)
+      }
+    },
+    onlineUsers (): Map<number, User> {
       return this.$store.getters['auth/onlineUsers']
     },
     members (): User[] {
@@ -242,11 +273,9 @@ export default defineComponent({
   },
   methods: {
     isOnline (user: User) {
-      if (this.user.id === user.id) return true
-      if (this.onlineUsers.length > 0) {
-        return this.onlineUsers.findIndex((onlineUser) => onlineUser.id === user.id) >= 0
-      }
-      return false
+      if (this.user.id === user.id) return this.user.status !== 'offline'
+      if (!this.onlineUsers.get(user.id)) return false
+      return this.onlineUsers.get(user.id)?.status !== 'offline'
     },
     async send () {
       this.message = this.message.trim()
@@ -343,8 +372,10 @@ export default defineComponent({
     },
     ...mapActions('user', ['updateStatus']),
     setStatus (status: 'online' | 'offline' | 'dnd') {
+      if (status === 'offline') channelService.leaveAllChannels()
+      else this.joinUserChannels(this.user.id)
       this.user_status = status.toLowerCase()
-      this.status_menu = false // Close the dropdown menu
+      this.statusMenu = false // Close the dropdown menu
       this.updateStatus(status) // Dispatch the action to update status
       console.log('Status set to: ', status) // Optional: Console log for debugging
     },
@@ -356,6 +387,10 @@ export default defineComponent({
     },
     closeDialog () {
       this.isDialogOpen = false
+    },
+    isDnd (member: User) {
+      if (this.user.id === member.id) return this.user.status === 'dnd'
+      return this.onlineUsers.get(member.id)?.status === 'dnd'
     }
   }
 })

@@ -29,6 +29,7 @@ Route.group(() => {
   Route.post('login', 'AuthController.login')
   Route.post('logout', 'AuthController.logout').middleware('auth')
   Route.get('me', 'AuthController.me').middleware('auth')
+  Route.post('setNotifyMentionsOnly', 'AuthController.setNotifyMentionsOnly').middleware('auth')
 }).prefix('auth')
 
 // User status update route

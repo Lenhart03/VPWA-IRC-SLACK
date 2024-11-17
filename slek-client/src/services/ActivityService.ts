@@ -11,7 +11,11 @@ class ActivitySocketManager extends SocketManager {
 
     this.socket.on('user:online', (user: User) => {
       console.log('User is online', user)
-      store.commit('auth/ADD_ONLINE_USER', user)
+      store.commit('auth/SET_ONLINE_USER', user)
+    })
+
+    this.socket.on('user:dnd', (user: User) => {
+      store.commit('auth/SET_ONLINE_USER', user)
     })
 
     this.socket.on('user:offline', (user: User) => {
