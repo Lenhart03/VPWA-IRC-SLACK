@@ -8,10 +8,12 @@ export default class MessageRepository implements MessageRepositoryContract {
   public async getAll(channelId: number): Promise<SerializedMessage[]> {
     const channel = await Channel.query()
       .where('id', channelId)
-      .preload('messages', (messagesQuery) => messagesQuery.preload('author'))
+      .preload('messages', (messagesQuery) => {
+        messagesQuery.preload('author').orderBy('created_at', 'desc').limit(20)
+      })
       .firstOrFail()
 
-    return channel.messages.map((message) => message.serialize() as SerializedMessage)
+    return channel.messages.reverse().map((message) => message.serialize() as SerializedMessage)
   }
 
   public async create(

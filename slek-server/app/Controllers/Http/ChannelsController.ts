@@ -4,6 +4,7 @@ import User from 'App/Models/User'
 import Invite from 'App/Models/Invite'
 import Ban from 'App/Models/Ban'
 import Vote from 'App/Models/Vote'
+import Message from 'App/Models/Message'
 
 export default class ChannelsController {
   public async index({ request }: HttpContextContract) {
@@ -248,5 +249,16 @@ export default class ChannelsController {
       message: `Joined channel ${channel.name} successfully`,
       channel,
     })
+  }
+
+  public async fetchMessages({ request }: HttpContextContract) {
+    const data = request.all()
+    const messages = await Message.query()
+      .where('channel_id', data.channelId)
+      .andWhere('created_at', '<', data.fromTimestamp)
+      .preload('author')
+      .orderBy('created_at', 'desc')
+      .limit(20)
+    return messages.reverse()
   }
 }
