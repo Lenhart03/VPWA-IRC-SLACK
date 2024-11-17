@@ -81,6 +81,9 @@ export default defineComponent({
     messages: {
       immediate: true,
       handler (newMessages) {
+        this.autoScrollToTheBottom = true
+        this.loading = false
+        this.hasMoreMessages = true
         this.localMessages = [...newMessages]
         this.$nextTick(() => this.scrollMessages())
       },
