@@ -199,12 +199,15 @@ import { defineComponent } from 'vue'
 import { mapActions, mapGetters, mapMutations } from 'vuex'
 import { authService, channelService } from 'src/services'
 import { User } from 'src/contracts/Auth'
+import { Notify } from 'quasar'
 
 export default defineComponent({
   name: 'ChatLayout',
   mounted () {
     console.warn(this.user)
-    this.joinUserChannels(this.user.id)
+    if (this.user.status !== 'offline') {
+      this.joinUserChannels(this.user.id)
+    }
     this.$store.commit('channels/INIT_LOAD_CHANNELS')
     setTimeout(() => {
       this.$store.commit('channels/SET_ACTIVE', this.channels[0])
@@ -278,6 +281,14 @@ export default defineComponent({
       return this.onlineUsers.get(user.id)?.status !== 'offline'
     },
     async send () {
+      if (this.user.status === 'offline') {
+        Notify.create({
+          type: 'negative',
+          position: 'top',
+          message: 'Channel is disconnected due to user having offline status.'
+        })
+        return
+      }
       this.message = this.message.trim()
       if (this.message.length === 0) return
       if (this.message[0] === '/') {
@@ -372,8 +383,9 @@ export default defineComponent({
     },
     ...mapActions('user', ['updateStatus']),
     setStatus (status: 'online' | 'offline' | 'dnd') {
-      if (status === 'offline') channelService.leaveAllChannels()
-      else this.joinUserChannels(this.user.id)
+      console.warn(status, this.user.status)
+      if (status === 'offline' && this.user.status !== 'offline') channelService.leaveAllChannels()
+      else if (status !== 'offline' && this.user.status === 'offline') this.joinUserChannels(this.user.id)
       this.user_status = status.toLowerCase()
       this.statusMenu = false // Close the dropdown menu
       this.updateStatus(status) // Dispatch the action to update status

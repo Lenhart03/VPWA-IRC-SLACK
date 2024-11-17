@@ -34,8 +34,20 @@ import { defineComponent, PropType } from 'vue'
 
 export default defineComponent({
   name: 'ChannelMessagesComponent',
+  data () {
+    return {
+      autoScrollToTheBottom: true
+    }
+  },
   mounted () {
-    this.$nextTick(() => this.scrollMessages())
+    this.$nextTick(() => {
+      const area = this.$refs.area as QScrollArea
+      if (area) {
+        this.scrollMessages()
+        const scrollTarget = area.getScrollTarget()
+        scrollTarget.addEventListener('scroll', this.onScroll)
+      }
+    })
   },
   props: {
     messages: {
@@ -71,9 +83,22 @@ export default defineComponent({
     }
   },
   methods: {
+    onScroll (event: Event) {
+      const target = event.target as HTMLElement
+      const scrollTop = target.scrollTop
+      const scrollHeight = target.scrollHeight
+      const clientHeight = target.clientHeight
+      if (scrollTop + clientHeight >= scrollHeight) { this.autoScrollToTheBottom = true } else this.autoScrollToTheBottom = false
+    },
     scrollMessages () {
+      if (!this.autoScrollToTheBottom) return
       const area = this.$refs.area as QScrollArea
-      area && area.setScrollPercentage('vertical', 10.0)
+      if (area) {
+        const scrollTarget = area.getScrollTarget()
+        const scrollHeight = scrollTarget.scrollHeight
+        const clientHeight = scrollTarget.clientHeight
+        scrollTarget.scrollTop = scrollHeight - clientHeight
+      }
     },
     isMine (message: SerializedMessage): boolean {
       if (message.author.id === 0) { return false }
