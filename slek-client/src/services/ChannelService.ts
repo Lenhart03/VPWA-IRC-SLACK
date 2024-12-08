@@ -2,7 +2,7 @@ import { RawMessage, SerializedMessage, Channel, ChannelData, ChannelType } from
 import { BootParams, SocketManager } from './SocketManager'
 import { api } from 'src/boot/axios'
 import { Store, Commit } from 'vuex'
-import { Notify, AppVisibility } from 'quasar'
+import { AppVisibility } from 'quasar'
 
 // creating instance of this class automatically connects to given socket.io namespace
 // subscribe is called with boot params, so you can use it to dispatch actions for socket events
@@ -30,11 +30,13 @@ class ChannelSocketManager extends SocketManager {
               //   message: text
               // })
               if (Notification.permission === 'granted') {
-                const notification = new Notification(text)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const notification = new Notification('VPWA-IRC-SLACK', { body: text })
               } else if (Notification.permission !== 'denied') {
                 Notification.requestPermission().then((permission) => {
                   if (permission === 'granted') {
-                    const notification = new Notification(text)
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const notification = new Notification('VPWA-IRC-SLACK', { body: text })
                   }
                 })
               }

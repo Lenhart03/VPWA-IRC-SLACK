@@ -46,3 +46,6 @@ Route.post('kick', 'ChannelsController.kick').middleware('auth')
 Route.post('/channels/join', 'ChannelsController.join').middleware('auth')
 Route.delete('/channels/delete', 'ChannelsController.deleteChannel').middleware('auth')
 Route.post('/channel/fetchMessages', 'ChannelsController.fetchMessages').middleware('auth')
+
+Route.post('/subscribe', 'NotificationController.subscribe')
+Route.post('/send-notification', 'NotificationController.sendNotification')

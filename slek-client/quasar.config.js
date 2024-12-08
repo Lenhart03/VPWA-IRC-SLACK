@@ -33,7 +33,8 @@ module.exports = configure(function (ctx) {
     boot: [
       'axios',
       'auth',
-      'socket.io'
+      'socket.io',
+      'notifications'
     ],
 
     // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-css
@@ -41,7 +42,10 @@ module.exports = configure(function (ctx) {
       'app.scss'
     ],
 
-    sourceFiles: { store: 'src/store/index.ts' },
+    sourceFiles: {
+      store: 'src/store/index.ts',
+      registerServiceWorker: 'src-pwa/register-service-worker.js'
+    },
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
