@@ -15,7 +15,7 @@ class ChannelSocketManager extends SocketManager {
     this.socket.on('message', (message: SerializedMessage) => {
       store.commit('auth/REMOVE_LIVE_MESSAGE', message)
       store.commit('channels/NEW_MESSAGE', { channelId, message })
-      if (AppVisibility.appVisible && store.getters['auth/user'].status !== 'dnd') {
+      if (!AppVisibility.appVisible && store.getters['auth/user'].status !== 'dnd') {
         console.log('MESSAGE NOTIFY')
         const channels = store.getters['channels/joinedChannels']
         console.log('channels', channels)
@@ -23,12 +23,21 @@ class ChannelSocketManager extends SocketManager {
           for (const channel of channels) {
             if (+channel.id === +channelId) {
               const maxLength = 32
-              const text = message.content.substring(0, Math.min(maxLength, message.content.length)) + (message.content.length > maxLength ? '...' : '')
-              Notify.create({
-                type: 'info',
-                position: 'top',
-                message: message.author.nickname + ' sent a new message in channel ' + channel.name + ': ' + text
-              })
+              const text = message.author.nickname + ' sent a new message in channel ' + channel.name + ': ' + message.content.substring(0, Math.min(maxLength, message.content.length)) + (message.content.length > maxLength ? '...' : '')
+              // Notify.create({
+              //   type: 'info',
+              //   position: 'top',
+              //   message: text
+              // })
+              if (Notification.permission === 'granted') {
+                const notification = new Notification(text)
+              } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then((permission) => {
+                  if (permission === 'granted') {
+                    const notification = new Notification(text)
+                  }
+                })
+              }
               break
             }
           }
